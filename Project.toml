@@ -3,6 +3,15 @@ uuid = "e3561b90-e7a2-11e8-22a6-450fa8459ba9"
 authors = ["Jasmine Hao <haojasmine@gmail.com>"]
 version = "0.1.0"
 
+[deps]
+Compose = "a81c6b42-2e10-5240-aca2-a61377ecd94b"
+GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
+Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
+KernelEstimator = "857edff2-01a9-55ba-8bc9-13e46c0ddbb2"
+Plotly = "58dd65bb-95f3-509e-9936-c39a10fdeae7"
+RCall = "6f49c342-dc21-5d91-9882-a32aef131414"
+RDatasets = "ce6b1742-4840-55fa-b093-852dadbb1d8b"
+
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
