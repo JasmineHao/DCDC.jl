@@ -1,0 +1,84 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsfonts,eurosym,geometry,ulem,graphicx,caption,color,setspace,sectsty,comment,footmisc,caption,natbib,pdflscape,subfigure,array,hyperref,upgreek,bbm}
+
+\normalem
+
+
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{verbatim}
+\usepackage{setspace}
+\usepackage{ulem}
+\usepackage{textpos}
+\usepackage{changepage}
+\usepackage{url}
+%\usepackage{multirow}
+
+
+%\usepackage{hyperref}
+%\usepackage{xcolor}
+%\hypersetup{colorlinks, linkcolor=blue, citecolor=blue}
+
+%\renewcommand{\sout}[1]{}
+%\renewcommand{\textbf}{}
+%\renewcommand{\bf}{}
+
+\newcommand{\tsout}[1]{\text{\sout{$#1$}}}
+
+
+\tolerance=5000
+\newtheorem{remark}{Remark}
+\def\mb{\mathbf}
+\def\iid{\mathrm{i.i.d. }}
+\def\bs{\boldsymbol}
+\def\tbf{\textbf}
+\def\t{^{\top}}
+\def\bSig{\bs{\Sigma}}
+\newcommand{\mcitet}[1]{\mbox{\citet{#1}}}
+\newcommand{\mcitep}[1]{\mbox{\citep{#1}}}
+
+\DeclareMathOperator{\vect}{vec}
+\DeclareMathOperator{\vecth}{vech}
+
+
+\onehalfspacing
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{example}{Example}
+%\newenvironment{proof}[1][Proof]{\noindent\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+
+\newcommand{\ind}{\mathbbm{1}}
+
+\newcommand{\R}{\mathbb{R}}
+\newtheorem{assumption}{Assumption}
+
+\newtheorem{hyp}{Hypothesis}
+\newtheorem{subhyp}{Hypothesis}[hyp]
+\renewcommand{\thesubhyp}{\thehyp\alph{subhyp}}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+\title{Dynamic decision process with continuous control}
+\author{Hiro Kasahara}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+The model:
+$u(c) = \frac{c^{1-\sigma}}{ 1 - \sigma}$ is the flow payoff.
+The transition follows that
+
+ This practice is a dynamic decision process.
+\end{document}

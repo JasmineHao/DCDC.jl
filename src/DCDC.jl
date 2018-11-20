@@ -1,18 +1,17 @@
 module DCDC
-using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools
-using ScikitLearn,JLD,PyCall
-using ScikitLearn: fit!, predict
-using Distributed
-@sk_import kernel_ridge: KernelRidge
-
-using Distributions,Expectations, QuantEcon
+using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon
 using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
-import Distributions.Normal, Expectations, QuantEcon
-export  Param, State, profit, ProfitFn
+using ScikitLearn,JLD,PyCall
+@sk_import kernel_ridge: KernelRidge
+@sk_import svm: SVR
+@sk_import neighbors: KNeighborsRegressor
+# using ScikitLearn: fit!, predict
+using Distributed, Suppressor
+export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
 
 RealVector = Union{Array{Float64},Array{Real},Array{Int}}
-include("kernel.jl")
-include("DCC.jl")
+# include("kernel.jl")
+# include("DCC.jl")
 # From this line
 # This function is
 mutable struct Utility
@@ -41,18 +40,20 @@ mutable struct ApproxFn
         if length(y) != n
             error("The dimension of x,y must match");
         end
-        self = new(x,y,n,"KRR",KernelRidge());
+        # self = new(x,y,n,"KRR",KernelRidge());
+        self = new(x,y,n,"SVR",SVR(kernel="rbf",degree=4));
+        # self = new(x,y,n,"KNN",KNeighborsRegressor());
         fit!(self.model,x,y);
         return(self)
     end
 
     function (self::ApproxFn)(x_in::Real)
-        y_in = predict(self.model,hcat([x_in]))
+        y_in = predict(self.model,hcat([x_in]));
         return(y_in)
     end
 
     function (self::ApproxFn)(x_in::RealVector)
-        y_in = predict(self.model,x_in)
+        y_in = predict(self.model,x_in);
         return(y_in)
     end
 
@@ -76,11 +77,13 @@ end
 function UpdateData(self::ApproxFn,x,y)
     self.x     = x;
     self.y     = y;
+    fit!(self.model,self.x,self.y);
     return(self)
 end
 
 function UpdateVal(self::ApproxFn,y)
     self.y     = y;
+    fit!(self.model,self.x,self.y);
     return(self)
 end
 
@@ -94,12 +97,41 @@ mutable struct DynamicDecisionProcess
     u::Utility
     ValueFn::ApproxFn
     β::Float64
+    policy::Array
     function DynamicDecisionProcess(σ::Real,β::Float64)
-        x = randn(400,1)
-        y = zeros(400)
-        vf = ApproxFn(x,y)
-        new(float(σ),Utility(float(σ)),x->x,β)
+        nSolve = 500;
+        ϵ = 0.01;
+        util = Utility(σ);
+        x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
+        y = (util(x)./(1 -β))[:,1];
+        vf = ApproxFn(x,y);
+
+        iter = 0
+        tol = 1
+        v_diff = Inf
+
+        c_opt = zeros(nSolve);
+        while (iter < 50 && v_diff > tol)
+            for n = 1:nSolve
+                @suppress begin
+                    ff = c ->  - (util(c' * [1]) + β * vf(Transition(x[n],c' * [1]))' * [1]);
+                    f_opt = optimize(ff,[ϵ],[x[n] - ϵ],[ϵ],SAMIN(),Optim.Options(g_tol = 1e-12,
+                                     iterations = 15,
+                                     store_trace = false,
+                                     show_trace = false));
+                    c_opt[n] = f_opt.minimizer[1];
+                 end
+            end
+
+            y = util(c_opt) + β * vf(Transition.(x,c_opt));
+            print(iter);
+            @show v_diff = maximum(abs.(y - vf.y));
+            UpdateVal(vf,y);
+            iter += 1;
+        end
+        new(float(σ),util,vf,β,c_opt)
     end
 end
+
 
 end # module]
