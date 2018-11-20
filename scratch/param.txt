@@ -1,0 +1,40 @@
+marketScale 1
+iCost 0.2 0.1 0.2 0.0
+psiStart 0.2 0.1 0.2 0.0
+nExo 1
+rhoX 0.8
+depreciation 0.5
+discount 0.9
+nFirm 1
+qSig 0.05
+seed 3349462
+markets 10
+nint 100
+tol 0.001
+time 5
+gamma 1 1 1
+maxIter 50
+nSolve 400
+bwV 1
+bwS 1
+bwEst 1.0
+bwiEst 0.1
+bwvEst 4.5
+minDensQ 0.01
+useSavedEq 0
+nCheck 0
+maxMoments 400
+useEta 0
+estimate 1
+eqRep 2
+ftolRel 1e-8
+ftolAbs 0
+xtolRel 1e-2
+nRep 3
+plotObj 0
+iObj 0
+fObj 1
+vObj 0
+divAbs 0
+degree 1
+order 2

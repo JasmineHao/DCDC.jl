@@ -1,55 +1,105 @@
 module DCDC
-using Distributions,Expectations
-import Distributions.Normal, Expectations
-export greet,foo, Param, State, profit, ProfitFn
-greet() = print("Hello World!")
-function foo(μ = 1., σ = 2.)
-    d = Normal(μ, σ)
-    E = expectation(d)
-    return E(x -> sin(x))
+using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools
+using ScikitLearn,JLD,PyCall
+using ScikitLearn: fit!, predict
+using Distributed
+@sk_import kernel_ridge: KernelRidge
+
+using Distributions,Expectations, QuantEcon
+using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
+import Distributions.Normal, Expectations, QuantEcon
+export  Param, State, profit, ProfitFn
+
+RealVector = Union{Array{Float64},Array{Real},Array{Int}}
+include("kernel.jl")
+include("DCC.jl")
+# From this line
+# This function is
+mutable struct Utility
+    σ::Float64
+    Utility(σ::Real) = new(Float64(σ))
+    function (self::Utility)(c::Union{Real,RealVector})
+        if (self.σ == 1)
+            return(log.(c))
+        else
+            return(float.(c).^(1 - self.σ)./(1 - self.σ));
+        end
+    end
 end
 
 
+# The ApproxFn
 
-# Π(θ) = γ[1] * quality + γ[2] log(y - p)
-# C(i;θ) = (β[1] - β[2] * η ) i + β[3] i^2 + β[4] ownQ 1(i>0& ownQ > 0 )
+mutable struct ApproxFn
+    x::RealVector
+    y::Array{Float64,1}
+    n::Int
+    method::String
+    model::Any
+    function ApproxFn(x::Array{Float64},y::Array{Float64,1})
+        n = size(x,1);
+        if length(y) != n
+            error("The dimension of x,y must match");
+        end
+        self = new(x,y,n,"KRR",KernelRidge());
+        fit!(self.model,x,y);
+        return(self)
+    end
 
-struct Param
-    γ::Array{Real,1}
-    β::Array{Real,1}
-    Param() = new([1],[0.2, 0.1, 0.2, 0.0])
-    Param(γ,β) = new(γ,β)
-end
-#
-struct State
-    ownQ::Real
-    otherQ::Array{Real,1}
-    η::Real  #The private shock
-    State() = new(sqrt(3) * randn() + 0.5,[],sqrt(2)*randn());
-    State(ownQ::Real,otherQ::Array{Real,1},η::Real) = new(ownQ,otherQ,η)
-end
-#
-function profit(s::State,invest::Real,p::Param)
-    profit = s.ownQ * p.γ[1]
-    cost = (invest * (p.β[1] - p.β[2] * s.η) +
-    p.β[3] * invest^2 + p.β[4]*(invest>0) * (s.ownQ > 0) * invest * s.ownQ)
-    return profit - cost
-end
-#
-mutable struct ProfitFn
-    γ::Array{Real,1}
-    β::Array{Real,1}
-    p::Param
-    ProfitFn(p) = new(p.γ, p.β,p) #constructor of a profit function
-    (self::ProfitFn)() = 0
-    (self::ProfitFn)(k) = println(k)
-    (self::ProfitFn)(s,i) = profit(s,i,self.p) #callable struct
-    # function profit(s,i) = profit(s,i,p)
+    function (self::ApproxFn)(x_in::Real)
+        y_in = predict(self.model,hcat([x_in]))
+        return(y_in)
+    end
+
+    function (self::ApproxFn)(x_in::RealVector)
+        y_in = predict(self.model,x_in)
+        return(y_in)
+    end
+
+    # Tried the GMM
+    # data = DataFrame(self.x);
+    # ff = @formula(y ~ 1 + x)
+    # ff.rhs.args = vcat([:+], names(data))
+    # data[:y] = self.y;
+    # ols = lm(ff,data)
+    # xin_df = DataFrame(vcat(x_in)')
+    # y_in = predict(ols,xin_df)
+
+    # Tried KernelEstimator
+    # w = zeros(self.n);
+    # h = ones(size(self.x,1));
+    # gaussiankernel(x_in, self.x, h , w, self.n);
+    # return(w*y)
 end
 
 
-# mutable struct name
-#     fields
-# end
+function UpdateData(self::ApproxFn,x,y)
+    self.x     = x;
+    self.y     = y;
+    return(self)
+end
+
+function UpdateVal(self::ApproxFn,y)
+    self.y     = y;
+    return(self)
+end
+
+function Transition(x::Real,c::Real)
+    return(1.04 * ( x - c ) + 1 )
+end
+
+# How to use sub types?
+mutable struct DynamicDecisionProcess
+    σ::Float64
+    u::Utility
+    ValueFn::ApproxFn
+    β::Float64
+    function DynamicDecisionProcess(σ::Real,β::Float64)
+        x = randn(400,1)
+        y = zeros(400)
+        vf = ApproxFn(x,y)
+        new(float(σ),Utility(float(σ)),x->x,β)
+    end
+end
 
 end # module]
