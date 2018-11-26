@@ -9,9 +9,9 @@ QuantEcon
 Expectations
 Distributions
 Parameters
-KernelEstimator
 ScikitLearn
 JLD
+Optim
 PyCall
 Distributed
 Suppressor
