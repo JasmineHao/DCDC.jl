@@ -1,3 +1,5 @@
+using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon
+using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
 using DCDC
 using Test
 
@@ -23,11 +25,11 @@ end
     n = 300
     xdata = randn(n,1);
     x = 0.3
-    h = 0.1;
-    y = xdata .+ 1 + randn(n);
+    h = 1;
+    y = xdata + randn(n);
     w = zeros(n)
-    ekernel2(x,xdata,h,w,n) #Assign value to weight
+    ekernel4(x,xdata,h,w,n) #Assign value to weight
     w_diag = diagm(0=>w);
     β_kernel = inv(xdata'*w_diag * xdata) * (xdata' * w_diag * y)
-    @test (abs.(β_kernel .- 3.3) .< 1)[1]
+    @test (abs.(β_kernel .- 1) .< 1)[1]
 end
