@@ -1,3 +1,4 @@
+import Distributions.estimate
 rhoxb(x::Real, b::Real) = 2*b*b + 2.5 - sqrt(4*b^4 + 6*b*b+2.25 - x*x - x/b)
 function multiply!(des::RealVector, x::RealVector, y::Real, n::Int=length(x))
     for i in 1:n
@@ -69,7 +70,8 @@ function gaussiankernel(x::RealVector, xdata::RealVector, h::RealVector, w::Vect
     nothing
 end
 
-
+# Epanechnikov Kernels
+# ____________________
 # Second order Epanechnikov ekernel
 function ekernel2(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
     ind = 1
@@ -122,20 +124,47 @@ function ekernel4(x::RealVector,xdata::RealVector,h::RealVector,w::Vector,n::Int
     nothing
 end
 
+# Kernel Type
+#____________________
+
+
 mutable struct Kernel
     xdata::Union{Real,RealVector}
-    y::Real #Realized value
+    y::RealVector #Realized value
     n::Int #Number of observation
     h::Union{Real,RealVector} #bandwidth
     kern::Function
-    function Kernel(xdata::Union{Real,RealVector},y::Real)
+    estimate::Function
+    forecast::Function
+    function Kernel(xdata::Union{Real,RealVector},y::RealVector)
         # Constructor for the kernel function
         n = size(xdata)[1];
         d = size(xdata)[2];
-        h = 0.1 * ones(d);
-        return(new(xdata,y,n,h,ekernel4));
+        h =  ones(d);
+        kern_estimate = x->estimate(x,Kern)
+        kern_forecast = x->forecast(x,Kern)
+        return(new(xdata,y,n,h,ekernel4,kern_estimate,kern_forecast));
     end
 end
 
-function estimate(Kern::Kernel)
+function estimate(x::Union{Real,RealVector},Kern::Kernel)
+    w = zeros(Kern.n);
+    Kern.kern(x,Kern.xdata,Kern.h,w,Kern.n);
+    w_diag = diagm(0=>w);
+    β_kernel = inv(Kern.xdata'*w_diag * Kern.xdata) * (Kern.xdata' * w_diag * Kern.y);
+    return(β_kernel);
+end
+
+function forecast(x::Union{Real,RealVector},Kern::Kernel)
+    β_kernel = estimate(x,Kern);
+    return(x' * β_kernel);
+end
+
+function forecast_fit(Kern::Kernel)
+    yfit = zeros(Kern.n)
+    for i = 1:Kern.n
+        x_i = Kern.xdata[i,:];
+        yfit[i] = Kern.forecast(x_i);
+    end
+    return(yfit);
 end
