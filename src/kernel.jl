@@ -125,13 +125,17 @@ end
 mutable struct Kernel
     xdata::Union{Real,RealVector}
     y::Real #Realized value
-    w::RealVector #Weight
     n::Int #Number of observation
     h::Union{Real,RealVector} #bandwidth
+    kern::Function
     function Kernel(xdata::Union{Real,RealVector},y::Real)
         # Constructor for the kernel function
         n = size(xdata)[1];
-        w = zeros(n);# Initializes
-        
+        d = size(xdata)[2];
+        h = 0.1 * ones(d);
+        return(new(xdata,y,n,h,ekernel4));
     end
+end
+
+function estimate(Kern::Kernel)
 end

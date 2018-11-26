@@ -9,7 +9,7 @@ module DCDC
     using Distributed, Suppressor
 
     # export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
-    export ekernel4, ekernel
+    export ekernel4, ekernel2
 
     RealVector = Union{Array{Float64},Array{Real},Array{Int}}
     include("kernel.jl")
