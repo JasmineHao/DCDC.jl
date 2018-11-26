@@ -1,6 +1,8 @@
 
 using Gadfly
 using Plotly
+using Plots
+gr()
 # Plots
 # http://docs.juliaplots.org/latest/examples/gr/#histogram
 #_______________________________________________________________
