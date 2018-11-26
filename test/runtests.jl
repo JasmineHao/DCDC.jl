@@ -28,9 +28,3 @@ w = zeros(n)
 ekernel2(x,xdata,h,w,n) #Assign value to weight
 w_diag = diagm(0=>w);
 β_kernel = inv(xdata'*w_diag * xdata) * (xdata' * w_diag * y)
-
-
-
-function predict(x,)
-using GR
-GR.plot("")
