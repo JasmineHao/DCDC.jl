@@ -7,11 +7,6 @@ using ScikitLearn,JLD,PyCall
 # using ScikitLearn: fit!, predict
 using Distributed, Suppressor
 
-export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
-
-
 RealVector = Union{Array{Float64},Array{Real},Array{Int}}
-# include("kernel.jl")
-# include("DCC.jl")
+include("kernel.jl")
 include("household.jl")
-end # module]

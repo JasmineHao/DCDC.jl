@@ -1,13 +1,3 @@
-using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon
-using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
-using ScikitLearn,JLD,PyCall
-@sk_import kernel_ridge: KernelRidge
-@sk_import svm: SVR
-@sk_import neighbors: KNeighborsRegressor
-# using ScikitLearn: fit!, predict
-using Distributed, Suppressor
-
-RealVector = Union{Array{Float64},Array{Real},Array{Int}}
 # include("kernel.jl")
 # include("DCC.jl")
 # From this line
@@ -86,12 +76,11 @@ function UpdateVal(self::ApproxFn,y)
 end
 
 function Transition(x::Real,c::Real)
-    return(1.04 * ( x - c ) + 1 )
+    return(1.05 * ( x - c ) + 1 )
 end
 
-
 # How to use sub types?
-function find_optim(vf::ApproxFn, Transition::Function, util::Utility,xin::Real)
+function find_optim(xin::Real, ϵ::Real, Transition::Function, util::Utility,vf::ApproxFn)
     @suppress begin
         ϵ = 0.01;
         ff = c ->  - (util(c' * [1]) + β * vf(Transition(xin,c' * [1]))' * [1]);
@@ -105,11 +94,12 @@ end
 
 mutable struct DynamicDecisionProcess
     σ::Float64
-    u::Utility
+    util::Utility
+    policy::Function
+    trans::Function
     ValueFn::ApproxFn
     β::Float64
-    policy::Function
-    Transition::Function
+
     function DynamicDecisionProcess(σ::Real,β::Float64)
         nSolve = 500;
         ϵ = 0.01;
@@ -125,13 +115,7 @@ mutable struct DynamicDecisionProcess
         c_opt = zeros(nSolve);
         while (iter < 50 && v_diff > tol)
             for n = 1:nSolve
-                    # ff = c ->  - (util(c' * [1]) + β * vf(Transition(x[n],c' * [1]))' * [1]);
-                    # f_opt = optimize(ff,[ϵ],[x[n] - ϵ],[ϵ],SAMIN(),Optim.Options(g_tol = 1e-12,
-                    #                  iterations = 15,
-                    #                  store_trace = false,
-                    #                  show_trace = false));
-                # c_opt[n] = f_opt.minimizer[1];
-                c_opt[n] = find_optim(vf,Transition,util,x[n]);
+                c_opt[n] = find_optim(x[n],ϵ,Transition,util,vf);
             end
 
             y = util(c_opt) + β * vf(Transition.(x,c_opt));
@@ -140,8 +124,8 @@ mutable struct DynamicDecisionProcess
             UpdateVal(vf,y);
             iter += 1;
         end
-
-        new(float(σ),util,vf,β,find_optim,Transition)
+        policy = xin -> find_optim(xin,ϵ,Transition,util,vf);
+        new(float(σ),util,policy,Transition,vf,β);
     end
 end
 

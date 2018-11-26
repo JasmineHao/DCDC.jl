@@ -1,5 +1,3 @@
-
-
 rhoxb(x::Real, b::Real) = 2*b*b + 2.5 - sqrt(4*b^4 + 6*b*b+2.25 - x*x - x/b)
 function multiply!(des::RealVector, x::RealVector, y::Real, n::Int=length(x))
     for i in 1:n
@@ -37,97 +35,8 @@ import Base.abs2
 function abs2(x::RealVector)
     return abs(x'*x)
 end
-function betakernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
-    a = x / h - 1
-    b = (1 - x) / h - 1
-    if (x < 0) || (x > 1)
-        fill!(w, 0.0)
-        return nothing
-    elseif x < 2h
-        a =  rhoxb(x, h) - 1
-    elseif x>1-2*h
-        b = rhoxb(1-x, h) - 1
-    end
 
-    minus!(w, 1.0, xdata, n)
-    w .= log.(w)
-    wtmp = log.(xdata)
-    multiply!(w, b)
-    multiply!(wtmp, a)
-    w .= w .+ wtmp
-
-    # for ind in 1:n
-    #     @inbounds w[ind] = a * log(xdata[ind]) + b * log(1 - xdata[ind])
-    # end
-
-    add!(w, -lbeta(a+1, b+1))
-    w .= exp.(w)
-    nothing
-end
-function betakernel(x::Real, logxdata::RealVector, log1_xdata::RealVector, h::Real, w::Vector, n::Int)
-    a = x / h - 1
-    b = (1 - x) / h - 1
-    if (x < 0) || (x > 1)
-        fill!(w, 0.0)
-        return nothing
-    elseif x < 2h
-        a =  rhoxb(x, h) - 1
-    elseif x>1-2*h
-        b = rhoxb(1-x, h) - 1
-    end
-
-    for ind in 1:n
-        @inbounds w[ind] = a * logxdata[ind] + b * log1_xdata[ind]
-    end
-    add!(w, -lbeta(a+1, b+1))
-    w .= exp.(w)
-    nothing
-end
-#f̂(x) = 1/n ∑ᵢ K(xᵢ;x /b+1, b )
-#xdata should be positive, or domain error will be raised.
-function gammakernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
-    rhob = x/h
-    if x <= 0
-        fill!(w, 0.0)
-        return nothing
-    elseif x < 2*h
-        rhob = 0.25 * rhob * rhob + 1.0
-    end
-
-    w .= log.(xdata)
-    multiply!(w, rhob-1.0)
-    tmp = -rhob*log(h)-lgamma(rhob)
-    add!(w, tmp)
-    h1 = 1/h
-    for ind in 1:n
-        @inbounds w[ind] -= xdata[ind] * h1
-    end
-    w .= exp.(w)
-    nothing
-end
-
-
-function gammakernel(x::Real, xdata::RealVector, logxdata::RealVector, h::Real, w::Vector, n::Int)
-    rhob = x/h
-    if x <= 0
-        fill!(w, 0.0)
-        return nothing
-    elseif x < 2*h
-        rhob = 0.25 * rhob * rhob + 1.0
-    end
-
-    # Yeppp.log!(w, xdata)
-    multiply!(w, logxdata, rhob-1.0)
-    tmp = -rhob*log(h)-lgamma(rhob)
-    add!(w, tmp)
-    h1 = 1/h
-    for ind in 1:n
-        @inbounds w[ind] -= xdata[ind] * h1
-    end
-    w .= exp.(w)
-    nothing
-end
-
+# Second order gaussiankernel
 function gaussiankernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
     h1= 1.0/h
     tmp = log(h) + log2π/2
@@ -160,7 +69,9 @@ function gaussiankernel(x::RealVector, xdata::RealVector, h::RealVector, w::Vect
     nothing
 end
 
-function ekernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
+
+# Second order Epanechnikov ekernel
+function ekernel2(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
     ind = 1
     ind_end = 1+n
     @inbounds while ind < ind_end
@@ -171,25 +82,51 @@ function ekernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
     multiply!(w, 0.75 / h)
     nothing
 end
-
-function ekernel(x::RealVector,xdata::RealVector,h::RealVector,w::Vector,n::Int)
+function ekernel2(x::RealVector,xdata::RealVector,h::RealVector,w::Vector,n::Int)
     ind = 1
     d = 1
     ind_end = 1+n
-    @inbounds while d <= size(h,1)
-        x[d] = x[d] / h[d]
-        xdata[:,d] = xdata[:,d] / h[d]
-        d+=1
-    end
-
+    u_all = (x' .- xdata) ./ h';
     @inbounds while ind < ind_end
-        u = (x - xdata[ind,:])
+        u = u_all[ind,:];
         w[ind] = ifelse(abs2(u)>=1.0, 0.0, 1-abs2(u))
         ind += 1
     end
     multiply!(w, 0.75 /prod(h))
     nothing
 end
+
+# Fourth order Epanechnikov ekernel
+function ekernel4(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
+    ind = 1
+    ind_end = 1+n
+    @inbounds while ind < ind_end
+        u = (x - xdata[ind]) / h
+        w[ind] = ifelse(abs(u)>=1.0, 0.0, 7*(abs2(u)^2)-10*abs2(u)+3)
+        ind += 1
+    end
+    multiply!(w, .46875 / h)
+    nothing
+end
+function ekernel4(x::RealVector,xdata::RealVector,h::RealVector,w::Vector,n::Int)
+    ind = 1
+    d = 1
+    ind_end = 1+n
+    u_all = (x' .- xdata) ./ h';
+    @inbounds while ind < ind_end
+        u = u_all[ind,:];
+        w[ind] = ifelse(abs2(u)>=1.0, 0.0, 7*(abs2(u)^2)-10*abs2(u)+3)
+        ind += 1
+    end
+    multiply!(w, 0.46875 /prod(h))
+    nothing
+end
+
+mutable struct Kernel
+    x::Union{Real,RealVector}
+    y::Real
+end
+
 # #univariate normal kernel
 
 # gaussiankernel{T<:FloatingPoint}(xi::T, x::T, h::T)=exp(-0.5*abs2((x - xi)/h)) / h * invsqrt2π

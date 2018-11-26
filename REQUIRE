@@ -1,6 +1,17 @@
 julia 1.0
 
+LinearAlgebra
+DataFrames
+Optim
+ForwardDiff
+BenchmarkTools
+QuantEcon
 Expectations
 Distributions
 Parameters
 KernelEstimator
+ScikitLearn
+JLD
+PyCall
+Distributed
+Suppressor

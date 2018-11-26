@@ -1,23 +1,36 @@
 using DCDC
 using Test
 
-@test foo() == 0.11388071406436832
-@test foo(1, 1.5) == 0.2731856314283442
-@test_broken foo(1, 0) # tells us this is broken
-#@testset "DCDC.jl" begin
-    # Write your own tests here.
-#end
-greet()
-DCDC.foo()
+# Single type of kernel
+n = 300
+xdata = randn(n,2);
+x = [0.3,0.4]
+h = [2,2];
+y = xdata * [1,2] + randn(n);
+w = zeros(n)
+ekernel4(x,xdata,h,w,n) #Assign value to weight
+w_diag = diagm(0=>w);
+β_kernel = inv(xdata'*w_diag * xdata) * (xdata' * w_diag * y)
+β_OLS = inv(xdata'*xdata) * (xdata'*y)
 
-# Profit function
-p = Param()  #True ⁠θ
+@testset "Kernel Regressions" begin
+    @test (β_kernel - [1,2]) .< 1
+    @test (β_OLS - [1,2]) .< 1
+end
 
-Param([3.0],[1.0])
-profit_func = ProfitFn(p)
-profit_func()
-profit_func(310)
+# Plots
+n = 300
+xdata = randn(n,1);
+x = 0.3
+h = 0.1;
+y = xdata .+ 1 + randn(n);
+w = zeros(n)
+ekernel2(x,xdata,h,w,n) #Assign value to weight
+w_diag = diagm(0=>w);
+β_kernel = inv(xdata'*w_diag * xdata) * (xdata' * w_diag * y)
 
-s = State()
-i = 30.0
-@test profit(s,i,p)==profit_func(s,i) #Define callable struct
+
+
+function predict(x,)
+using GR
+GR.plot("")
