@@ -14,6 +14,6 @@ module DCDC
 
 
     include("kernel.jl")
-# include("DCC.jl")
-# include("household.jl")
+# include("param.jl")
+# include("hh.jl")
 end # module]
