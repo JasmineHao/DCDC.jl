@@ -15,7 +15,7 @@ begin
     β_kernel = inv(xdata'*w_diag * xdata) * (xdata' * w_diag * y)
     β_OLS = inv(xdata'*xdata) * (xdata'*y);
 
-    af = ApproxFn(xdata,y,:epan,4);
+    af = ApproxFn(xdata,y,:gaussian,2);
 
 end
 # Multi-Variable Kernel Regression
@@ -32,3 +32,12 @@ end
     @test abs(bw_constant(1,4,:triw) - 3.72) < 0.01;
     @test abs(bw_constant(1,4,:gaussian) - 1.08) < 0.01;
 end
+
+n=300;
+xdata=randn(n);
+y=xdata*3+randn(n);
+using Plots
+scatter(xdata,y)
+af=ApproxFn(xdata,y,:gaussian,2);
+y_hat= af(xdata);
+scatter!(xdata,y_hat);

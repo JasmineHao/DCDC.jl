@@ -91,7 +91,9 @@ kern_epan_dict = Dict(2=> u->ifelse(abs2(u)>=1.0, 0.0, 0.75*(1-abs2(u))),
                       6=> u->ifelse(abs2(u)>=1.0, 0.0, 105/256*(-33*(abs2(u)^3)+63*(abs2(u)^2)-35*abs2(u)+5)));
 kern_biw_dict = Dict();
 kern_triw_dict = Dict();
-kern_gaussian_dict = Dict();
+kern_gaussian_dict = Dict(2=> u-> (1 /sqrt(2*π)) * exp(-abs2(u)/2),
+                    4=> u-> ifelse((3 - abs2(u))<=0, 0.0, 1 / (2*sqrt(2*π)))*(3 - abs2(u))*exp(-abs2(u)/2),
+                    6=> u-> ifelse((15-10*abs2(u)+abs2(u)^2)<=0,0.0 ,1 / (8*sqrt(2*π)))*(15-10*abs2(u)+abs2(u)^2)*exp(-abs2(u)/2) );
 kern_dict = Dict(:epan=>kern_epan_dict,:biw=>kern_biw_dict,
                 :triw=>kern_triw_dict,:gaussian=>kern_gaussian_dict)
 # Bandwidth
@@ -227,10 +229,10 @@ mutable struct ApproxFn
     function (self::ApproxFn)(x::Union{Real,RealVector})
         if ((typeof(x)<:Real) & (self.q==1))
             return(forecast(x,self));
-        elseif ((typeof(x)<:Vector)&(self.q>1&size(x)[1]==self.q))
+        elseif (typeof(x)<:Vector)& (self.q>1) &(size(x)[1]==self.q)
             return(forecast(x,self));
         elseif (typeof(x)<:Vector)&(self.q==1)
-            forcast_y = zeros(size(x)[1]);
+            forecast_y = zeros(size(x)[1]);
             for i = 1:size(x)[1]
                 forecast_y[i] = forecast(x[i],self);
             end
@@ -238,7 +240,6 @@ mutable struct ApproxFn
         elseif (self.q>1)&(size(x)[2]==self.q)
             forecast_y = zeros(size(x)[1]);
             for i = 1:size(x)[1]
-                print(i)
                 forecast_y[i] = forecast(x[i,:],self);
             end
             return(forecast_y);
