@@ -1,5 +1,5 @@
 module DCDC
-    using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon
+    using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon, Statistics
     using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
     # using ScikitLearn,JLD,PyCall
     # @sk_import kernel_ridge: KernelRidge
@@ -9,9 +9,10 @@ module DCDC
     using Distributed, Suppressor
 
     # export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
-    export RealVector,ekernel4, ekernel2, Kernel,estimate, forecast
+    export RealVector,ekernel4, ekernel2, Kernel,estimate,
+    forecast,bw_constant,compute_w,ApproxFn
 
-    RealVector = Union{Array{Float64},Array{Real},Array{Int}}
+
     include("kernel.jl")
 # include("DCC.jl")
 # include("household.jl")

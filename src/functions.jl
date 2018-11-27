@@ -7,6 +7,5 @@ using ScikitLearn,JLD,PyCall
 # using ScikitLearn: fit!, predict
 using Distributed, Suppressor
 
-RealVector = Union{Array{Float64},Array{Real},Array{Int}}
 include("kernel.jl")
 include("household.jl")

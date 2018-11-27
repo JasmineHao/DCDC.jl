@@ -1,6 +1,7 @@
 julia 1.0
 
 LinearAlgebra
+Statistics
 DataFrames
 Optim
 ForwardDiff
