@@ -14,6 +14,6 @@ module DCDC
 
 
     include("kernel.jl")
-# include("param.jl")
-# include("hh.jl")
+    include("param.jl")
+    include("hh.jl")
 end # module]
