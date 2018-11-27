@@ -203,7 +203,7 @@ mutable struct ApproxFn
         if (q>1)
             σ = sqrt.(diag(cov(xdata)));
         elseif (q==1)
-            σ = sqrt(cov(xdata2));
+            σ = sqrt(cov(xdata));
         end
         h=bw_compute(σ,n,q,ν,k_type);
         # self = new(x,y,n,"SVR",SVR(kernel="rbf",degree=4,gamma="scale"));
