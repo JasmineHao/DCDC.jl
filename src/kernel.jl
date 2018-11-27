@@ -186,19 +186,6 @@ ekernel2 = (x,xdata,h,w,n)->compute_w(x,xdata,h,w,n,kern_dict[:epan][2])
 # ApproxFn
 #____________________
 
-# The ApproxFn
-function estimate(x::Union{Real,RealVector},af::ApproxFn)
-    w = zeros(af.n);
-    compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
-    w_diag = diagm(0=>w);
-    β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
-    return(β_kernel);
-end
-
-function forecast(x::Union{Real,RealVector},af::ApproxFn)
-    β_kernel = estimate(x,af);
-    return(x' * β_kernel);
-end
 
 mutable struct ApproxFn
     xdata::Union{Real,RealVector}
@@ -259,6 +246,19 @@ mutable struct ApproxFn
 
 end
 
+# The ApproxFn
+function estimate(x::Union{Real,RealVector},af::ApproxFn)
+    w = zeros(af.n);
+    compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
+    w_diag = diagm(0=>w);
+    β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+    return(β_kernel);
+end
+
+function forecast(x::Union{Real,RealVector},af::ApproxFn)
+    β_kernel = estimate(x,af);
+    return(x' * β_kernel);
+end
 
 function UpdateData(self::ApproxFn,xdata,y)
     self.xdata = xdata;

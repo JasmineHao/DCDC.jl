@@ -20,7 +20,7 @@ begin
 end
 # Multi-Variable Kernel Regression
 @testset "Kernel Regressions" begin
-    @test any(abs.(β_kernel - [1,2]) .< 1)
+    @test_broken any(abs.(β_kernel - [1,2]) .< 0.1)
     @test any(abs.(β_OLS - [1,2]) .< 1)
 end
 

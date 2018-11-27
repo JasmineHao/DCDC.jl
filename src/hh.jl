@@ -46,7 +46,7 @@ mutable struct DynamicDecisionProcess
         util = Utility(σ);
         x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
         y = (util(x)./(1 -β))[:,1];
-        vf = ApproxFn(x,y);
+        vf = ApproxFn(x,y,:gaussian,2);
 
         iter = 0
         tol = 1
