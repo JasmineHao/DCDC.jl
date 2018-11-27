@@ -22,6 +22,7 @@ begin
 end
 # Multi-Variable Kernel Regression
 @testset "Kernel Regressions" begin
+    @test_broken any(abs.(β_kernel - [1,2]) .< 0.1)
     @test any(abs.(β_OLS - [1,2]) .< 1)
 end
 
@@ -57,8 +58,3 @@ end
 
 
 # DDC
-σ=1;
-β=0.8;
-ddc = DynamicDecisionProcess(σ,β);
-plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
-plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y)
