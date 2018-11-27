@@ -10,10 +10,10 @@ module DCDC
 
     # export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
     export RealVector,ekernel4, ekernel2, Kernel,estimate,
-    forecast,bw_constant,compute_w,ApproxFn
+    forecast,bw_constant,compute_w,ApproxFn,Param
 
 
     include("kernel.jl")
     include("param.jl")
-    # include("hh.jl")
+    include("hh.jl")
 end # module]
