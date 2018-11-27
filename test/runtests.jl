@@ -2,7 +2,9 @@ using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions
 using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
 using DCDC
 using Test
+using Distributed, Suppressor
 
+# cd(joinpath(DEPOT_PATH[1],"dev","DCDC"))
 begin
     n = 300
     xdata = randn(n,2);
@@ -33,11 +35,31 @@ end
     @test abs(bw_constant(1,4,:gaussian) - 1.08) < 0.01;
 end
 
-n=300;
-xdata=randn(n);
-y=xdata*3+randn(n);
+
+param = Param();
+param2 = Param([1,2],[1,2]);
+@testset "Parameter test" begin
+    @test param.γ == [1]
+    @test param2.γ == [1,2]
+end
+
+# Plot
 using Plots
-scatter(xdata,y)
-af=ApproxFn(xdata,y,:gaussian,2);
-y_hat= af(xdata);
-scatter!(xdata,y_hat);
+
+begin
+    n=300;
+    xdata=4*randn(n);
+    y=sin.(xdata)+ 0.3*randn(n);
+    scatter(xdata,y)
+    af=ApproxFn(xdata,y,:gaussian,2);
+    y_hat= af(xdata);
+    scatter!(xdata,y_hat);
+end
+
+
+# DDC
+σ=1;
+β=0.8;
+ddc = DynamicDecisionProcess(σ,β);
+plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
+plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y)

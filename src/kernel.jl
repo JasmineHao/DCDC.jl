@@ -206,6 +206,9 @@ mutable struct ApproxFn
             σ = sqrt(cov(xdata));
         end
         h=bw_compute(σ,n,q,ν,k_type);
+        if (q==1)
+            h=h[1];
+        end
         # self = new(x,y,n,"SVR",SVR(kernel="rbf",degree=4,gamma="scale"));
         # self = new(x,y,n,"KNN",KNeighborsRegressor());
         # fit!(self.model,x,y);
@@ -221,7 +224,7 @@ mutable struct ApproxFn
         elseif (typeof(x)<:Vector)&(self.q==1)
             forecast_y = zeros(size(x)[1]);
             for i = 1:size(x)[1]
-                forecast_y[i] = forecast(x[i],self);
+                forecast_y[i] = forecast(x[i],self)[1];
             end
             return(forecast_y);
         elseif (self.q>1)&(size(x)[2]==self.q)
@@ -269,7 +272,7 @@ end
 
 function UpdateVal(self::ApproxFn,y)
     self.y     = y;
-    fit!(self.model,self.x,self.y);
+    # fit!(self.model,self.x,self.y);
     return(self)
 end
 
