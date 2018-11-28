@@ -48,7 +48,9 @@ end
     @test typeof(state) == State;
 end
 @testset "ProfitFn" begin
-    ProfitFn(rand(3),rand(2), param);
+    profitfn = ProfitFn(param);
+    @test typeof(profitfn) == ProfitFn;
+    @test profitfn() == 0;
 end
 
 # Plot
