@@ -21,7 +21,6 @@ end
 # The moment condition is
 # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
 function convert_data(data)
-
     c_t  = [];
     c_t1 = [];
     x_t  = [];
