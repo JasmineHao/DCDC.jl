@@ -72,42 +72,11 @@ mutable struct DynamicDecisionProcess
         end
         # policy = xin -> find_optim(xin,ϵ,Transition,util,vf);
         policy = ApproxFn(x,c_opt,:gaussian,2);
-        dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c);
-        dutil = (x) -> Tracker.gradient(ddc.util,x);
+        dtrans = (x,c) -> Tracker.gradient(Transition,x,c);
+        dutil = (x) -> Tracker.gradient(util,x)[1].data;
         new(float(σ),util,Transition,policy,vf,β,dtrans,dutil);
     end
-    function DynamicDecisionProcess()
-        σ = 1;
-        β = 0.8;
-        nSolve = 500;
-        ϵ = 0.01;
-        util = Utility(σ);
-        # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        x = convert(Array{Float64,1},range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        y = (util(x)./(1 -β));
-        vf = ApproxFn(x,y,:gaussian,2);
 
-        iter = 0
-        tol = 1
-        v_diff = Inf
-
-        c_opt = zeros(nSolve);
-        while (iter < 50 && v_diff > tol)
-            for n = 1:nSolve
-                c_opt[n] = find_optim(x[n],ϵ,β, Transition,util,vf);
-            end
-            y = util(c_opt) + β * vf(Transition(x,c_opt));
-            println("Iteration:",iter);
-            @show v_diff = maximum(abs.(y - vf.y));
-            UpdateVal(vf,y);
-            iter += 1;
-        end
-        # policy = xin -> find_optim(xin,ϵ,Transition,util,vf);
-        policy = ApproxFn(x,c_opt,:gaussian,2);
-        dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c);
-        dutil = (x) -> Tracker.gradient(ddc.util,x);
-        new(float(σ),util,Transition,policy,vf,β,dtrans,dutil);
-    end
 end
 
 # dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c) #Transition derivatives, can be broadcasted

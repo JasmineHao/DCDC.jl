@@ -58,3 +58,22 @@ end
 
 
 # DDC
+@testset "GMM small test" begin
+      n = 3000;
+      sig = rand(3,3)
+      mu = rand(3)
+      mn = MvNormal(mu,sig * sig')
+      x_m = rand(mn,n)';
+      x = x_m[:,[1,2]]
+      β₀ = [1,3];
+      y = x * β₀ + x_m[:,3]
+      @show mn.Σ.mat;
+      @show cov(x);
+      β_OLS  = inv(x'*x) *(x'*y)
+      obj = θ->(begin
+            η = (x * θ - y) ;
+            η'*η
+            end)
+      result = optimize(obj,zeros(2),Newton(),autodiff = :forward)
+      @test result.minimizer ≈ β_OLS ;
+end
