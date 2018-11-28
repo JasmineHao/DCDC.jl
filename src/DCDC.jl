@@ -14,7 +14,7 @@ module DCDC
     # export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
     export RealVector,ekernel4, ekernel2, Kernel,estimate,
     forecast,bw_constant,compute_w,ApproxFn,Param, State, profit, ProfitFn,
-    DynamicDecisionProcess,simulate_ddc,
+    DynamicDecisionProcess,dynamic_decision_process,simulate_ddc,
     Utility, Transition, find_optim
 
 

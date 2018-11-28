@@ -1,19 +1,21 @@
-using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,Expectations, QuantEcon, Statistics, GLM
+using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,
+    Expectations, QuantEcon, Statistics, GLM
 using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
 using DCDC
 using Test
 using Distributed, Suppressor
+using Plots
 
-
-σ = 1;
-β = 0.8;
-nM = 50;
-nT = 5;
-ddc = DynamicDecisionProcess(σ,0.8);
-plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
-plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
-data = simulate_ddc(nM,nT,ddc);
-
+begin "Dynamic Decision Process"
+    σ₀ = 1;
+    β = 0.8;
+    nM = 50;
+    nT = 5;
+    ddc = DynamicDecisionProcess(σ₀,0.8);
+    plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
+    plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
+    data = simulate_ddc(nM,nT,ddc);
+end
 
 begin "GLM"
     x = randn(300,3);
@@ -81,4 +83,43 @@ begin "Test flux: graident and jacobian"
     x0 = [0.1, 2.0]
     f(x0)
     Flux.jacobian(f, x0)
+end
+
+using TimerOutputs
+begin
+    # Create the timer object
+    to = TimerOutput()
+    # Time something with an assigned label
+    @timeit to "sleep" sleep(0.3)
+    # Data is accumulated for multiple calls
+    for i in 1:100
+        @timeit to "loop" 1+1
+    end
+    # Nested sections are possible
+    @timeit to "nest 1" begin
+        @timeit to "nest 2" begin
+            @timeit to "nest 3.1" rand(10^3)
+            @timeit to "nest 3.2" rand(10^4)
+            @timeit to "nest 3.3" rand(10^5)
+        end
+        rand(10^6)
+    end
+end
+
+
+# Expectations
+begin "Test Expectatoin"
+    dist = Normal();
+    E = expectation(dist, Gaussian; n = 301)
+    f = x -> x^2
+    expectation(f, dist)
+end
+
+using Optim
+using Optim: converged, maximum, maximizer, minimizer, iterations #some extra functions
+begin "Test Optim"
+      result = optimize(x-> x^2, -2.0, 1.0)
+      @show converged(result) || error("Failed to converge in $(iterations(result)) iterations")
+      @show xmin = result.minimizer
+      @show result.minimum
 end
