@@ -77,3 +77,60 @@ end
       result = optimize(obj,zeros(2),Newton(),autodiff = :forward)
       @test result.minimizer ≈ β_OLS ;
 end
+begin "Test Optim"
+      n = 3000;
+      sig = [01.0 0.5 0.5;
+             0.0 0.5 0.0 ;
+             0.0 0.0 1.0];
+
+      mu = [1,9,0];
+      mn = MvNormal(mu,sig * sig')
+      W = rand(mn,n)'
+      x = W[:,1];z=W[:,2];ϵ=W[:,3];
+      y = x * 3 + ϵ;
+      β_OLS = inv(x'*x)*(x'*y);
+      β_IV = inv(z'*x)*(z'*y);
+      w = hcat(x,y,z);
+      obj = θ->(begin
+            η = (w[:,1] .* θ - w[:,2]) .* w[:,3];
+            η'*η
+            end)
+      result = optimize(obj,zeros(1),Newton(),autodiff = :forward)
+      # @show converged(result) || error("Failed to converge in $(iterations(result)) iterations")
+      @show xmin = result.minimizer
+      @show result.minimum
+end
+
+@testset begin "GMM"
+      @test β_OLS - result.minimizer[1] < 0.1
+
+end
+
+@testset begin "Dynamic Decision Process"
+    σ₀ = 1;
+    β = 0.8;
+    nM = 50;
+    nT = 5;
+    ddc = DynamicDecisionProcess(σ₀,0.8);
+    plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
+    plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
+    data = simulate_ddc(nM,nT,ddc);
+end
+
+
+# Generate IV regression data
+begin
+    n = 3000;
+    sig = [1.0 0.5 0.5;
+         0.0 0.5 0.0 ;
+         0.0 0.0 1.0];
+
+    mu = [1,9,0];
+    mn = MvNormal(mu,sig * sig')
+    W = rand(mn,n)'
+    x = W[:,1];z=W[:,2];ϵ=W[:,3];
+    y = x * 3 + ϵ;
+    β_OLS = inv(x'*x)*(x'*y);
+    β_IV = inv(z'*x)*(z'*y);
+    w = hcat(x,y,z);
+end
