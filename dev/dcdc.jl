@@ -53,5 +53,5 @@ function _moment(θ)
     dutil = (x) -> Tracker.gradient(util,x)[1].data;
     dudc  = dutil.(c_t);
     dudc1 = dutil.(c_t1);
-
+    dudc -
 end
