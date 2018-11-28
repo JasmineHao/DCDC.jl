@@ -77,7 +77,8 @@ end
       result = optimize(obj,zeros(2),Newton(),autodiff = :forward)
       @test result.minimizer ≈ β_OLS ;
 end
-begin "Test Optim"
+
+@testset begin "Test Optim"
       n = 3000;
       sig = [01.0 0.5 0.5;
              0.0 0.5 0.0 ;
@@ -99,12 +100,9 @@ begin "Test Optim"
       # @show converged(result) || error("Failed to converge in $(iterations(result)) iterations")
       @show xmin = result.minimizer
       @show result.minimum
+      @test (β_OLS - result.minimizer[1] )< 0.1
 end
 
-@testset begin "GMM"
-      @test β_OLS - result.minimizer[1] < 0.1
-
-end
 
 @testset begin "Dynamic Decision Process"
     σ₀ = 1;
@@ -119,7 +117,7 @@ end
 
 
 # Generate IV regression data
-begin
+@testset begin
     n = 3000;
     sig = [1.0 0.5 0.5;
          0.0 0.5 0.0 ;
@@ -133,4 +131,5 @@ begin
     β_OLS = inv(x'*x)*(x'*y);
     β_IV = inv(z'*x)*(z'*y);
     w = hcat(x,y,z);
+    @test β_OLS != β_IV
 end
