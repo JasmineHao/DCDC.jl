@@ -42,6 +42,14 @@ param2 = Param([1,2],[1,2]);
     @test param.γ == [1]
     @test param2.γ == [1,2]
 end
+@testset "State" begin
+    state = State()
+    state = State(rand(),randn(3),rand())
+    @test typeof(state) == State;
+end
+@testset "ProfitFn" begin
+    ProfitFn(rand(3),rand(2), param);
+end
 
 # Plot
 using Plots

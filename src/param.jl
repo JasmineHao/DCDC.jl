@@ -13,7 +13,7 @@ struct State
     otherQ::Array{Real,1}
     η::Real  #The private shock
     State() = new(sqrt(3) * randn() + 0.5,[],sqrt(2)*randn());
-    State(ownQ::Real,otherQ::Array{Real,1},η::Real) = new(ownQ,otherQ,η)
+    State(ownQ::Real,otherQ::RealVector,η::Real) = new(ownQ,otherQ,η)
 end
 #
 function profit(s::State,invest::Real,p::Param)
@@ -24,8 +24,8 @@ function profit(s::State,invest::Real,p::Param)
 end
 #
 mutable struct ProfitFn
-    γ::Array{Real,1}
-    β::Array{Real,1}
+    γ::RealVector
+    β::RealVector
     p::Param
     ProfitFn(p) = new(p.γ, p.β,p) #constructor of a profit function
     (self::ProfitFn)() = 0
