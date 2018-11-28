@@ -43,7 +43,8 @@ mutable struct DynamicDecisionProcess
     PolicyFn::ApproxFn
     ValueFn::ApproxFn
     β::Float64
-
+    dtrans::Function
+    dutil::Function
     function DynamicDecisionProcess(σ::Real,β::Float64)
         nSolve = 500;
         ϵ = 0.01;
@@ -71,10 +72,30 @@ mutable struct DynamicDecisionProcess
         end
         # policy = xin -> find_optim(xin,ϵ,Transition,util,vf);
         policy = ApproxFn(x,c_opt,:gaussian,2);
-        new(float(σ),util,Transition,policy,vf,β);
+        dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c);
+        dutil = (x) -> Tracker.gradient(ddc.util,x);
+        new(float(σ),util,Transition,policy,vf,β,dtrans,dutil);
     end
 end
 
-# function simulate(ddc::DynamicDecisionProcess)
-#     x =
-# end
+# dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c) #Transition derivatives, can be broadcasted
+
+function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
+    x_data = randn();
+    # du = DiscreteUniform(1,500);
+    lb = minimum(ddc.PolicyFn.xdata,dims=1);
+    ub = maximum(ddc.PolicyFn.xdata,dims=1);
+    x0 = zeros(nM,ddc.PolicyFn.q); #Initial states
+    for i = 1:ddc.PolicyFn.q
+        du = Uniform(lb[i],ub[i]);
+        x0[:,i] = rand(du,nM);
+    end
+    x = zeros(nM,nT+1);
+    c = zeros(nM,nT);
+    x[:,1] = x0;
+    for t = 1:nT
+        c[:,t] = ddc.PolicyFn(x[:,t]);
+        x[:,t+1] = ddc.trans(x[:,t],c[:,t]);
+    end
+    return(state=x,action=c);
+end
