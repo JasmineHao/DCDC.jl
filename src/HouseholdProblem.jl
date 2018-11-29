@@ -80,6 +80,11 @@ mutable struct DynamicDecisionProcess
 end
 
 # dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c) #Transition derivatives, can be broadcasted
+# Compute equilibrium(): similar to Paul Schrimpf's dynamic choice problem
+# UpateValue()
+# While normV + normS2 + normV2 > tol (What is tole)
+# Old value, old strategy
+# norm V, norm S = abs2(old V - V)/size, abs2(old S - S)/size,
 
 function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
     x_data = randn();

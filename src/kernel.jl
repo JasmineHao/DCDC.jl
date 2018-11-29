@@ -152,6 +152,7 @@ mutable struct Kernel
         kern=kern_dict[k_type][ν];
         return(new(ν,k_type,kern));
     end
+    # TODO: Can add self-defined kernel function
 end
 
 # Fourth order Epanechnikov ekernel

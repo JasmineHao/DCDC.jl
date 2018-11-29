@@ -19,20 +19,19 @@ end
 
 
 # The moment condition is
-# u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
+# u'(a_t) = β d_Trans(a_t,x_t) u'(a_t+1)
 function convert_data(data)
-
-    c_t  = [];
-    c_t1 = [];
-    x_t  = [];
-    x_t1 = [];
+    a_t  = [];
+    a_t1 = [];
+    s_t  = [];
+    s_t1 = [];
     for t = 1:(nT-1)
-        c_t  = vcat(c_t,data.action[:,t]);
-        x_t  = vcat(x_t,data.state[:,t]);
-        c_t1 = vcat(c_t1,data.action[:,t+1]);
-        x_t1 = vcat(x_t1,data.action[:,t+1]);
+        a_t  = vcat(a_t,data.action[:,t]);
+        s_t  = vcat(s_t,data.state[:,t]);
+        a_t1 = vcat(a_t1,data.action[:,t+1]);
+        s_t1 = vcat(s_t1,data.action[:,t+1]);
     end
-    return(action_t=c_t,action_t_1=c_t1,state_t=x_t,state_t_1=x_t1);
+    return(action_t=a_t,action_t_1=a_t1,state_t=s_t,state_t_1=s_t1);
 end
 
 reshaped_data = convert_data(data);
@@ -62,12 +61,15 @@ function _moment(θ)
 end
 
 function _moment2(σ₀)
-    util = Utility(σ₀);
-    dutil = (x) -> Tracker.gradient(util,x)[1].data;
+    dutil = (x) -> Tracker.gradient(Utility(σ₀);,x)[1].data;
     dudc  = dutil.(reshaped_data.action_t);
     dudc1 = dutil.(reshaped_data.action_t_1);
     η = dudc - 0.8 .* dudc1 .* R;
     return(η'*η)
 end
 
-optimize(_moment2,0.0,Newton(),autodiff=:forward)
+optimize(_moment,zeros(2),BFGS(),autodiff=:forward)
+
+function check_ee(ddc::DynamicDecisionProcess)
+    
+end

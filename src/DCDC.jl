@@ -20,5 +20,5 @@ module DCDC
 
     include("kernel.jl")
     include("param.jl")
-    include("hh.jl")
+    include("HouseholdProblem.jl")
 end # module]
