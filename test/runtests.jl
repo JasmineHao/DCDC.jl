@@ -48,20 +48,17 @@ end
     @test typeof(state) == State;
 end
 @testset "ProfitFn" begin
-<<<<<<< HEAD
-    profitfn = ProfitFn(param);
+    profitfn = ProfitFn(param2);
     @test typeof(profitfn) == ProfitFn;
     @test profitfn() == 0;
-=======
     pf = ProfitFn(param1);
     @test pf() == 0;
->>>>>>> 42c44666cb2ee894f690036ee00de612c46071d5
 end
 
 # Plot
 using Plots
 
-begin
+@testset "ApproxFn" begin
     n=300;
     xdata=4*randn(n);
     y=sin.(xdata)+ 0.3*randn(n);
@@ -75,16 +72,16 @@ end
 # DDC
 @testset "GMM small test" begin
       n = 3000;
-      sig = rand(3,3)
-      mu = rand(3)
-      mn = MvNormal(mu,sig * sig')
+      sig = rand(3,3);
+      mu = rand(3);
+      mn = MvNormal(mu,sig * sig');
       x_m = rand(mn,n)';
-      x = x_m[:,[1,2]]
+      x = x_m[:,[1,2]];
       β₀ = [1,3];
-      y = x * β₀ + x_m[:,3]
+      y = x * β₀ + x_m[:,3];
       @show mn.Σ.mat;
       @show cov(x);
-      β_OLS  = inv(x'*x) *(x'*y)
+      β_OLS  = inv(x'*x) *(x'*y);
       obj = θ->(begin
             η = (x * θ - y) ;
             η'*η
@@ -93,7 +90,7 @@ end
       @test result.minimizer ≈ β_OLS ;
 end
 
-@testset begin "Test Optim"
+@testset "Test Optim" begin
       n = 3000;
       sig = [01.0 0.5 0.5;
              0.0 0.5 0.0 ;
