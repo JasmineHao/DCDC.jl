@@ -46,7 +46,9 @@ import Base.abs2
 function abs2(x::RealVector)
     return abs(x'*x)
 end
-
+function abs2(x::Array{Float64,2})
+    return [x[i,:]'*x[i,:] for i=1:size(x,1)]
+end
 # # Second order gaussiankernel
 # function gaussiankernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
 #     h1= 1.0/h
@@ -152,6 +154,7 @@ mutable struct Kernel
         kern=kern_dict[k_type][ν];
         return(new(ν,k_type,kern));
     end
+    # TODO: Can add self-defined kernel function
 end
 
 # Fourth order Epanechnikov ekernel
@@ -249,13 +252,45 @@ mutable struct ApproxFn
 
 end
 
-# The ApproxFn
-function estimate(x::Union{Real,RealVector},af::ApproxFn)
-    w = zeros(af.n);
-    compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
+function find_nn(neighbour_dist::Array{Float64,1},n::Int)
+    neighbour_dist_sort = sort(neighbour_dist); #Sort from smallest to largest
+    index=zeros(n);
+    for i = 1:n
+         for j = 1:length(neighbour_dist_sort)
+             if (neighbour_dist_sort[i]==neighbour_dist[j])
+                index[i]=j;
+            end
+         end
+    end
+    return(convert(Array{Int,1},index));
+end
+
+function estimatenn(x::Union{Real,RealVector},af::ApproxFn)
+    # Use 10 nearest neighbour, I don't know, may be should do more
+    dist2=y->abs2(x-y);
+    n=10;
+    neighbour_dist = apply_row(dist2,af.xdata);
+    nn_index=find_nn(neighbour_dist,n);
+    w=zeros(af.n);
+    for i in nn_index
+        w[i]=1/n;
+    end
     w_diag = diagm(0=>w);
     β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
     return(β_kernel);
+end
+# The ApproxFn
+# The nonparametric function such that Y = ApproxFn(X)
+function estimate(x::Union{Real,RealVector},af::ApproxFn)
+    w = zeros(af.n);
+    compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
+    if sum(w)==0
+        return(estimatenn(x,af));
+    else
+        w_diag = diagm(0=>w);
+        β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+        return(β_kernel);
+    end
 end
 
 function forecast(x::Union{Real,RealVector},af::ApproxFn)

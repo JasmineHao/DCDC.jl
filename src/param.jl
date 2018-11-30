@@ -1,11 +1,11 @@
 # Π(θ) = γ[1] * quality + γ[2] log(y - p)
 # C(i;θ) = (β[1] - β[2] * η ) i + β[3] i^2 + β[4] ownQ 1(i>0& ownQ > 0 )
 
-struct Param
+struct Parameter
     γ::Array{Real,1}
     β::Array{Real,1}
-    Param() = new([1],[0.2, 0.1, 0.2, 0.0])
-    Param(γ,β) = new(γ,β)
+    Parameter() = new([1],[0.2, 0.1, 0.2, 0.0])
+    Parameter(γ,β) = new(γ,β)
 end
 #
 struct State
@@ -16,7 +16,7 @@ struct State
     State(ownQ::Real,otherQ::RealVector,η::Real) = new(ownQ,otherQ,η)
 end
 #
-function profit(s::State,invest::Real,p::Param)
+function profit(s::State,invest::Real,p::Parameter)
     profit = s.ownQ * p.γ[1]
     cost = (invest * (p.β[1] - p.β[2] * s.η) +
     p.β[3] * invest^2 + p.β[4]*(invest>0) * (s.ownQ > 0) * invest * s.ownQ)
@@ -26,7 +26,7 @@ end
 mutable struct ProfitFn
     γ::RealVector
     β::RealVector
-    p::Param
+    p::Parameter
     ProfitFn(p) = new(p.γ, p.β,p) #constructor of a profit function
     (self::ProfitFn)() = 0
     (self::ProfitFn)(k) = println(k)

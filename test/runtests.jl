@@ -22,7 +22,7 @@ begin
 end
 # Multi-Variable Kernel Regression
 @testset "Kernel Regressions" begin
-    # @test_broken any(abs.(β_kernel - [1,2]) .< 0.1)
+    @test β_kernel != β_OLS;
     @test any(abs.(β_OLS - [1,2]) .< 1)
 end
 
@@ -36,10 +36,10 @@ end
 end
 
 
-param = Param();
-param2 = Param([1,2],[1,2]);
+param1 = Parameter();
+param2 = Parameter([1,2],[1,2]);
 @testset "Parameter test" begin
-    @test param.γ == [1]
+    @test param1.γ == [1]
     @test param2.γ == [1,2]
 end
 @testset "State" begin
@@ -48,9 +48,14 @@ end
     @test typeof(state) == State;
 end
 @testset "ProfitFn" begin
+<<<<<<< HEAD
     profitfn = ProfitFn(param);
     @test typeof(profitfn) == ProfitFn;
     @test profitfn() == 0;
+=======
+    pf = ProfitFn(param1);
+    @test pf() == 0;
+>>>>>>> 42c44666cb2ee894f690036ee00de612c46071d5
 end
 
 # Plot
@@ -114,20 +119,21 @@ end
 end
 
 
-@testset begin "Dynamic Decision Process"
+@testset "Dynamic Decision Process" begin
     σ₀ = 1;
     β = 0.8;
     nM = 50;
     nT = 5;
     ddc = DynamicDecisionProcess(σ₀,0.8);
+    UpdateVal!(ddc);
     plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
-    plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
+    plot(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
     data = simulate_ddc(nM,nT,ddc);
 end
 
 
 # Generate IV regression data
-@testset begin
+@testset "IV regression" begin
     n = 3000;
     sig = [1.0 0.5 0.5;
          0.0 0.5 0.0 ;
@@ -141,5 +147,11 @@ end
     β_OLS = inv(x'*x)*(x'*y);
     β_IV = inv(z'*x)*(z'*y);
     w = hcat(x,y,z);
-    @test β_OLS != β_IV
+    @test β_OLS != β_IV;
+end
+
+@testset begin "Solve equilibrium"
+    ddc=DynamicDecisionProcess(2,0.8);
+    computeEquilibrium(ddc);
+    checked = [check_ee(ddc) for i = 1:100];
 end
