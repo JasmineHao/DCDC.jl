@@ -102,11 +102,12 @@ function UpdateSolvedGrid!(ddc::DynamicDecisionProcess,T)
     s_old = s_new;
     t = 0;
     while t < T
+        @show t;
         s_new = ddc.trans(s_old,ddc.PolicyFn(x_new));
         η_new = randn(ddc.nSolve)./3; #Generate η
         x_new = hcat(s_new,η_new);
-        @show abs2(s_old - s_new)/ddc.nSolve;
-        s_old = s_new;
+        s_diff= abs2(s_old - s_new)/ddc.nSolve;
+        s_old = deepcopy(s_new);
         t += 1;
     end
 end
@@ -125,7 +126,8 @@ function UpdateVal!(ddc::DynamicDecisionProcess)
 
         y = ddc.util(c_opt) + ddc.β * ddc.ValueFn(Transition(s,c_opt));
         # println("Iteration:",iter);
-        v_diff = maximum(abs.(y - ddc.ValueFn.y));
+        # @show iter;
+        v_diff = mean(abs.(y - ddc.ValueFn.y));
         UpdateVal(ddc.ValueFn,y);
         iter += 1;
     end
@@ -134,11 +136,12 @@ end
 
 function computeEquilibrium(ddc::DynamicDecisionProcess)
     i = 0;
-    while i < 3
+    while i < 30
         old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
         UpdateVal!(ddc);
-        @show computeDistance(ddc,old_policy,old_value);
-        UpdateSolvedGrid!(ddc::DynamicDecisionProcess);
+        @show diff_v=computeDistance(ddc,old_policy,old_value);
+        UpdateSolvedGrid!(ddc::DynamicDecisionProcess,3);
+        i+=1;
     end
 end
 # simulate dynamic discrete choice problem from the solved problem

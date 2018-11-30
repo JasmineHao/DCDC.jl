@@ -252,14 +252,45 @@ mutable struct ApproxFn
 
 end
 
+function find_nn(neighbour_dist::Array{Float64,1},n::Int)
+    neighbour_dist_sort = sort(neighbour_dist); #Sort from smallest to largest
+    index=zeros(n);
+    for i = 1:n
+         for j = 1:length(neighbour_dist_sort)
+             if (neighbour_dist_sort[i]==neighbour_dist[j])
+                index[i]=j;
+            end
+         end
+    end
+    return(convert(Array{Int,1},index));
+end
+
+function estimatenn(x::Union{Real,RealVector},af::ApproxFn)
+    # Use 10 nearest neighbour, I don't know, may be should do more
+    dist2=y->abs2(x-y);
+    n=10;
+    neighbour_dist = apply_row(dist2,af.xdata);
+    nn_index=find_nn(neighbour_dist,n);
+    w=zeros(af.n);
+    for i in nn_index
+        w[i]=1/n;
+    end
+    w_diag = diagm(0=>w);
+    β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+    return(β_kernel);
+end
 # The ApproxFn
 # The nonparametric function such that Y = ApproxFn(X)
 function estimate(x::Union{Real,RealVector},af::ApproxFn)
     w = zeros(af.n);
     compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
-    w_diag = diagm(0=>w);
-    β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
-    return(β_kernel);
+    if sum(w)==0
+        return(estimatenn(x,af));
+    else
+        w_diag = diagm(0=>w);
+        β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+        return(β_kernel);
+    end
 end
 
 function forecast(x::Union{Real,RealVector},af::ApproxFn)
