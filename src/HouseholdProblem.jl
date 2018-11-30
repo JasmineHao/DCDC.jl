@@ -118,24 +118,31 @@ function UpdateVal!(ddc::DynamicDecisionProcess)
     iter = 0
     tol = 1
     v_diff = Inf
-    while (iter < 50 && v_diff > tol)
+    while (iter < 3 && v_diff > tol)
         for n = 1:ddc.nSolve
             c_opt[n] = find_optim(s[n],η[n],0.01,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
         end
 
-        y = ddc.util(c_opt) + β * ddc.ValueFn(Transition(s,c_opt));
-        println("Iteration:",iter);
-        @show v_diff = maximum(abs.(y - ddc.ValueFn.y));
+        y = ddc.util(c_opt) + ddc.β * ddc.ValueFn(Transition(s,c_opt));
+        # println("Iteration:",iter);
+        v_diff = maximum(abs.(y - ddc.ValueFn.y));
         UpdateVal(ddc.ValueFn,y);
         iter += 1;
     end
     UpdateVal(ddc.PolicyFn,c_opt);
 end
 
+function computeEquilibrium(ddc::DynamicDecisionProcess)
+    i = 0;
+    while i < 3
+        old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
+        UpdateVal!(ddc);
+        @show computeDistance(ddc,old_policy,old_value);
+        UpdateSolvedGrid!(ddc::DynamicDecisionProcess);
+    end
+end
 # simulate dynamic discrete choice problem from the solved problem
 function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
-    x_data = randn();
-    # du = DiscreteUniform(1,500);
     lb = minimum(ddc.PolicyFn.xdata,dims=1);
     ub = maximum(ddc.PolicyFn.xdata,dims=1);
     x0 = zeros(nM,ddc.PolicyFn.q); #Initial states
@@ -143,12 +150,13 @@ function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
         du = Uniform(lb[i],ub[i]);
         x0[:,i] = rand(du,nM);
     end
-    x = zeros(nM,nT+1);
-    c = zeros(nM,nT);
-    x[:,1] = x0;
+    s = zeros(nM,nT+1);
+    a = zeros(nM,nT);
+    s[:,1] = x0[:,1];
     for t = 1:nT
-        c[:,t] = ddc.PolicyFn(x[:,t]);
-        x[:,t+1] = ddc.trans(x[:,t],c[:,t]);
+        x = hcat(s[:,t],randn(nM)/3);
+        a[:,t] = ddc.PolicyFn(x);
+        s[:,t+1] = ddc.trans(s[:,t],a[:,t]);
     end
-    return(state=x,action=c);
+    return(state=s,action=a);
 end
