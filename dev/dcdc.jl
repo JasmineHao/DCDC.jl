@@ -69,7 +69,3 @@ function _moment2(σ₀)
 end
 
 optimize(_moment,zeros(2),BFGS(),autodiff=:forward)
-
-function check_ee(ddc::DynamicDecisionProcess)
-    
-end

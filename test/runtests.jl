@@ -113,7 +113,7 @@ end
 end
 
 
-@testset "Dynamic Decision Process" begin 
+@testset "Dynamic Decision Process" begin
     σ₀ = 1;
     β = 0.8;
     nM = 50;
@@ -142,4 +142,10 @@ end
     β_IV = inv(z'*x)*(z'*y);
     w = hcat(x,y,z);
     @test β_OLS != β_IV;
+end
+
+@testset begin "Solve equilibrium"
+    ddc=DynamicDecisionProcess(2,0.8);
+    computeEquilibrium(ddc);
+    checked = [check_ee(ddc) for i = 1:100];
 end
