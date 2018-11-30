@@ -1,7 +1,7 @@
 # include("kernel.jl")
 # include("DCC.jl")
 # From this line
-# This function is
+# This function is: util(c,η,s) = (1+η) c^(1-σ)/(1-σ)
 mutable struct Utility
     σ::Float64
     Utility(σ::Real) = new(Float64(σ))
@@ -12,23 +12,31 @@ mutable struct Utility
             return(float.(c).^(1 - self.σ)./(1 - self.σ));
         end
     end
+    function (self::Utility)(c::Union{Real,RealVector},η::Union{Real,RealVector})
+        if (self.σ == 1)
+            return((η.+1).*log.(c))
+        else
+            return((η.+1).* (float.(c).^(1 - self.σ))./(1 - self.σ));
+        end
+    end
+
 end
 
 
-function Transition(x::Real,c::Real)
-    return(1.05 * ( x - c ) + 1 )
+function Transition(s::Real,c::Real)
+    return(1.05 * ( s - c ) + 1 )
 end
 
-function Transition(x::RealVector,c::RealVector)
-    return(1.05 * ( x - c ) .+ 1 )
+function Transition(s::RealVector,c::RealVector)
+    return(1.05 * ( s - c ) .+ 1 )
 end
 
 # How to use sub types?
-function find_optim(xin::Real, ϵ::Real, β::Float64, Transition::Function, util::Utility,vf::ApproxFn)
+function find_optim(xin::Real,ηin::Real, lb::Real, β::Float64, trans::Function, util::Utility,ValueFn::ApproxFn)
     @suppress begin
-        # ϵ = 0.01;
-        ff = c ->  - (util(c' * [1]) + β * vf(Transition(xin,c' * [1])));
-        f_opt = optimize(ff,[ϵ],[xin - ϵ],[ϵ],SAMIN(),Optim.Options(g_tol = 1e-12,
+        # η = 0.01;
+        ff = c ->  - (util(c' * [1],ηin) + β * ValueFn(trans(xin,c' * [1])));
+        f_opt = optimize(ff,[lb],[xin[1] - lb],[lb],SAMIN(),Optim.Options(g_tol = 1e-12,
                          iterations = 15,
                      store_trace = false,
                      show_trace = false));
@@ -45,47 +53,86 @@ mutable struct DynamicDecisionProcess
     β::Float64
     dtrans::Function
     dutil::Function
+    nSolve::Int
     function DynamicDecisionProcess(σ::Real,β::Float64)
         nSolve = 500;
+        v_tol = 0.001;
         ϵ = 0.01;
         util = Utility(σ);
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        x = convert(Array{Float64,1},range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        y = (util(x)./(1 -β));
-        vf = ApproxFn(x,y,:gaussian,2);
+        s = convert(Array{Float64,1},range(2*ϵ,step=ϵ,length=nSolve)); #Convert it into 2dimension
+        η = randn(nSolve)./3; #Normal distributed error
+        # v = (util(s)./(1 -β));
+        sdat = hcat(s,η);
 
-        iter = 0
-        tol = 1
-        v_diff = Inf
 
         c_opt = zeros(nSolve);
-        while (iter < 50 && v_diff > tol)
-            for n = 1:nSolve
-                c_opt[n] = find_optim(x[n],ϵ,β, Transition,util,vf);
-            end
+        PolicyFn = ApproxFn(sdat,c_opt,:gaussian,2);
+        ValueFn = ApproxFn(s,c_opt,:gaussian,2);
 
-            y = util(c_opt) + β * vf(Transition(x,c_opt));
-            println("Iteration:",iter);
-            @show v_diff = maximum(abs.(y - vf.y));
-            UpdateVal(vf,y);
-            iter += 1;
-        end
-        # policy = xin -> find_optim(xin,ϵ,Transition,util,vf);
-        policy = ApproxFn(x,c_opt,:gaussian,2);
-        dtrans = (x,c) -> Tracker.gradient(Transition,x,c);
-        dutil = (x) -> Tracker.gradient(util,x)[1].data;
-        new(float(σ),util,Transition,policy,vf,β,dtrans,dutil);
+        dtrans = (s,c) -> Tracker.gradient(Transition,s,c);
+        dutil  = (c,η) -> Tracker.gradient(util,c,η)[1].data;
+        ddc = new(float(σ),util,Transition,PolicyFn,ValueFn,β,dtrans,dutil,nSolve);
+        return(ddc);
     end
-
 end
 
 # dtrans = (x,c) -> Tracker.gradient(ddc.trans,x,c) #Transition derivatives, can be broadcasted
 # Compute equilibrium(): similar to Paul Schrimpf's dynamic choice problem
-# UpateValue()
-# While normV + normS2 + normV2 > tol (What is tole)
-# Old value, old strategy
-# norm V, norm S = abs2(old V - V)/size, abs2(old S - S)/size,
 
+# While normV + normS2 + normV2 > tol (What is tole)
+    # UpateValue, updateStrategy     : Update the solved value for policy and value function
+    # gridUpdate && abs2(strategy.val,stratGrid.val)>strategy.val.size()*0.2
+    # # UpdateSolvedGrid: To make the distribution stationary
+    # stratGrid = strategy
+
+function computeDistance(ddc::DynamicDecisionProcess,old_policy::ApproxFn,old_value::ApproxFn)
+     normPolicy = abs2(old_policy.y - ddc.PolicyFn.y)./ddc.PolicyFn.n;
+     normValue  = abs2(old_value.y  - ddc.ValueFn.y)./ddc.ValueFn.n;
+     normData   = mean(abs2(old_value.xdata - ddc.ValueFn.xdata));
+     return(normPolicy+normValue+normData);
+end
+
+function UpdateSolvedGrid!(ddc::DynamicDecisionProcess,T)
+    # Update the grade for solving the points
+    # ddc.policy
+    η_new = randn(ddc.nSolve); #Generate η
+    s_new = ddc.PolicyFn.xdata[:,1];
+    x_new = hcat(s_new,η_new);
+    s_old = s_new;
+    t = 0;
+    while t < T
+        s_new = ddc.trans(s_old,ddc.PolicyFn(x_new));
+        η_new = randn(ddc.nSolve)./3; #Generate η
+        x_new = hcat(s_new,η_new);
+        @show abs2(s_old - s_new)/ddc.nSolve;
+        s_old = s_new;
+        t += 1;
+    end
+end
+
+function UpdateVal!(ddc::DynamicDecisionProcess)
+    c_opt = ddc.PolicyFn.y;
+    s = ddc.PolicyFn.xdata[:,1];
+    η = ddc.PolicyFn.xdata[:,2];
+    iter = 0
+    tol = 1
+    v_diff = Inf
+    while (iter < 50 && v_diff > tol)
+        for n = 1:ddc.nSolve
+            c_opt[n] = find_optim(s[n],η[n],0.01,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
+        end
+
+        y = ddc.util(c_opt) + β * ddc.ValueFn(Transition(s,c_opt));
+        println("Iteration:",iter);
+        @show v_diff = maximum(abs.(y - ddc.ValueFn.y));
+        UpdateVal(ddc.ValueFn,y);
+        iter += 1;
+    end
+    UpdateVal(ddc.PolicyFn,c_opt);
+end
+
+# simulate dynamic discrete choice problem from the solved problem
 function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
     x_data = randn();
     # du = DiscreteUniform(1,500);

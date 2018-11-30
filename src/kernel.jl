@@ -46,7 +46,9 @@ import Base.abs2
 function abs2(x::RealVector)
     return abs(x'*x)
 end
-
+function abs2(x::Array{Float64,2})
+    return [x[i,:]'*x[i,:] for i=1:size(x,1)]
+end
 # # Second order gaussiankernel
 # function gaussiankernel(x::Real, xdata::RealVector, h::Real, w::Vector, n::Int)
 #     h1= 1.0/h
@@ -251,6 +253,7 @@ mutable struct ApproxFn
 end
 
 # The ApproxFn
+# The nonparametric function such that Y = ApproxFn(X)
 function estimate(x::Union{Real,RealVector},af::ApproxFn)
     w = zeros(af.n);
     compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
