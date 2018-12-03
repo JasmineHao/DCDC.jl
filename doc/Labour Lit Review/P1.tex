@@ -1,0 +1,116 @@
+\cite{Attanasio2015AggregatingSupply}
+Related 
+\begin{itemize}
+    \item  Keane, M. P. and R. Rogerson (2012): Micro and Macro Labor Supply Elasticities: A Reassessment of Conventional Wisdom," Journal of Economic Literature, 50, 464-476.
+    \item Keane, M. P. and R. Rogerson (2015): Reconciling Micro and Macro Labor Supply Elasticities: A Structural Perspective," Annual Review of Economics, 7, 89-117. 
+    \item Blundell, R., A. Bozio, and G. Laroque (2011): Labor Supply and the Extensive Margin," American Economic Review, 101, 482-486.
+    \item Ljungqvist, L. and T. J. Sargent (2011): A Labor Supply Elasticity Accord?" American Economic Review, 101, 487-491.
+    \item Rogerson, R. and J. Wallenius (2009): Micro and Macro Elasticities in a Life Cycle Model with Taxes," Journal of Economic Theory, 144, 2277-2292.
+    \item Erosa, A., L. Fuster, and G. Kambourov (2016): Towards a micro-founded theory of aggregate labor supply," Review of Economic Studies, 83, 1001-1039.
+    \item Imai, S. and M. P. Keane (2004): Intertemporal Labor Supply and Human Capital Accumulation," International Economic Review, 45, 601-641.
+    \item Keane, M. P. and N. Wasi (2016): Labor Supply: the Roles of Human Capital and the Extensive Margin," The Economic Journal, 126, 578-617.
+\end{itemize}
+\section{Intro}
+The paper estimates labour supply elasticities at the micro level and show that we can learn from very heterogeneous elasticities for aggregate behavior.
+The paper use US CEX DATA.
+The paper shows there is substantial heterogeneity in how individuals respond to wage changes at all margins, both due to observables,(age, wage, hours worked and the wage level) as well as unobservables(tastes for leisure.)
+
+The paper estimate the distribution of Marshallian eslaticity to be 0.54 and Frisch elasticity to be 0.87.
+
+The estimation is based on percentile.
+
+
+\subsection{Background}
+\begin{itemize}
+
+\item The size of elasticity of labour supply to changes in wages has been studied for a long time.
+
+\item Recent debates focused on the perceived discrepancy between estimates coming from micro studies. Keane and Rogerson (2015) and Keane and Rogerson (2012) survey some of these issues and the papers by Blundell et al. (2011), Ljungqvist and Sargent (2011) and Rogerson and Wallenius (2009) contain some alternative views on the debate.
+
+\item Preferences for consumption and leisure are affected in family composition, health status, fertility, and unobserved taste.
+
+\item Therefore elasticity vary across section, even across business cycle.
+
+\item \tbf{Problem}: how big is the variance.
+
+\item Whole economic environment is important in aggregate labour supply, Chang and Kim(2006) the aggregate response depends on the distribution of reservation wages.
+
+\item In macro, assume consumption and leisure additive separable.
+\end{itemize}
+\subsection{The paper}
+\begin{itemize}
+    \item The paper make assumption about shape of utility function. The flexible specification allow for observed and unobserved heterogeneity in taste.
+    \item Estimate the full life-cycle  model and aggregate individual behavior similar to Erosa et all(2016).
+    \item Take way imply future labour supply: Keane and Wasi (2016), Imain and Keane(2004).
+    \item Keane and Wasi(2016) introduce human capital, and find labour supply elasticities are highly heterogeneous and vary substantiallywith age, education and tax structure.
+\end{itemize}
+
+\section{Life cycle model of female labour supply}
+In our model, both the intensive and extensive margins are meaningful because of the presence of fixed costs of going to work related to family composition and because of preference costs specifically related to participation.
+\[ \max_{c,l} E_t \sum_{j=0}^T \beta^j u(c_{h,t+j},l_{h,t+j},P_{h,t+j};z_{h,t+j},\chi_{h,t+j},\zeta_{h,t+j}), \]
+where $c$ is the consumption, $l$ is the female leisure, $P$ is indicator of women's labour force participation, $z$ is demographic pattern(education, age, family composition). $\chi$ and $\xi$ are taste shifters.
+$z$ are observables, $\chi,\xi$ are unobservables.
+
+\[ u(c_{h,t},l_{h,t},P_{h,t}) = \frac{M^{1-\gamma}_{h,t}}{1 - \gamma} \exp{(\xi P_{h,t} + \pi z_{h,t} + \zeta_{h,t} )} .\]
+The preference aggregator for hours of leisure and consumption is 
+\[ M_{h,t}(c_{h,t},l_{h,t};z_{h,t},\chi_{h,t}) = \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right) \]
+$\alpha_{h,t}= \exp{(\psi_0 + \psi_z z_{h,t} + \chi_{h,t})}$
+
+Parameters  $(\phi,\theta,\psi_0,\psi_z,\gamma,\xi,\pi)$.
+
+Inter-temporal budget constraint:
+\[ A_{h,t+1} = (1 + r_{t+1}) \left( A_{h,t} + \left(w_{h,t}^f(H-l_{h,t}) - F(a_{h,t}) \right)P_{h,t} + y_{h,t}^m - c_{h,t} \right)\]
+$A_{h,t}$ is the beginning asset holding, $r_t$ is the risk-free interest rate, $F$ is the fixed cost of work, dependent on the age of the youngest child, $a_{h,t}$. Female wages are given by $w_{h,t}^f$ and husband earning $y_{h,t}^m$.
+No explicit borrowing constraint but households cannot go bankrupt.
+
+The fixed cost $F(a_{h,t}) = p G(a_{h,t}) + \bar{F}$.
+Female wages $\log(w_{h,t}^f ) = \log(w_{h,0}^f) + \log(e_{h,t}^f) + \nu_{h,t}^f $.
+
+Each period of the model is one quarter. Household choose typical hours of work each week.
+Within the dynamic problem just described, individuals make decisions taking stochastic process as given.
+\subsection{Model basics}
+\begin{itemize}
+     \item Female wages are given by the following process: $\log w_{h,t} = \log w_{h,0}^f + \log e_{h,t}^f + \nu_{h,t}^f$, $e_{h,t}^f$ is the level of female human capital, at time $t$. Consistent with observations with US-based studies(Hirsch(2005), Aaronson and French(2004)).
+     \item Human capital does not depend on the history of labour supply and assumed to evolve exogenously
+     $\log(e_t^f) = \iota_{1}^f t + \iota_{2}^f t^2$.
+    \item Men always work and male earnings are given by :$\log y_{h,t}^m = \log y_{h,0}^m + \iota_1^m t + \iota_2^m t^2 + \nu_{h,t}^m$.
+    \item Initial distribution for women wage:$w_{h,0}^f$,
+    earnings for men $y_{h,0}^m$.
+    \item Female and male wage changes:(subject to shocks and positively correlated)
+    \[ \begin{split}
+        \nu_{h,t} & = \nu_{h,t-1} + \xi_{h,t} \\
+        \xi_{h,t} & = (\xi_{h,t}^f,\xi_{h,t}^m) \sim N(\mu_{\xi},\sigma_{\xi}^2) \\
+        \mu_{\xi} & = (-\sigma_{\xi^f}^2 / 2,-\sigma_{\xi^m}^2 / 2), \sigma_{\xi}^2 = ()
+    \end{split} \]
+\end{itemize}
+
+\subsection{MRS, Marshallian and Hicksan Elasticities}
+\begin{itemize}
+    \item  Within period resource not earned by women as : $y_t = (A_{h,t} + y_{h,t}^m - F(a_{h,t}) P_{h,t}) - \frac{A_{h,t+1}}{1 + r_{t+1}}$, is the resources saved into the next period.
+     \item Within period budget constraint: $c_t + w_t l_t = y_t + w_t H$. 
+     \item Suppose the solution is interior with strictly positive number of working hours. F.O.C. for within-period optimality implies that the ratio of the marginal utility of leisure to that of consumption,
+     $w_{h,t} = \frac{u_{l_{h,t}}}{u_{c_{h,t}}} = \alpha_{h,t} \frac{l_{h,t}^{-\theta}}{c_{h,t}^{-\phi}}$.
+     \item The Marshallian elasticities for female hours of work and consumption \[ \begin{split}
+      \epsilon_h^M & = \frac{\partial \log h}{\partial \log w} = - \left( \frac{\phi w (H-l) - c}{\theta c + \phi w l} \right) \frac{l}{H - l } \\
+      \epsilon_c^M & = \frac{\partial \log c}{\partial \log w} = \frac{\phi w (H-l) + wl}{\theta c + \phi w l} \end{split}\]
+      \item For the balanced growth, we would require $\phi = 1$. If preferences ware standard CES, $\phi = \theta$.\item If $\theta,\phi > 1$, $\epsilon^M_c < 1,\epsilon_h^M <  0 $.
+      \item The static Hicksian response net off the increase in within0period resources due to the wage increase is \[ \begin{split}
+          \epsilon_h^H & = \left(\epsilon_l^M - \frac{\partial \log l }{\partial \log (c+wl)} \frac{w(H-l)}{(c+wl)}\right)\frac{-l}{H-l} = \frac{-wl^2}{(\theta c + \phi w l )(H - l)} \\
+          \epsilon_c^H & = \epsilon_c^M + \frac{\partial \log c}{\partial \log (c+wl)} \frac{wl}{c+wl} = \frac{-c}{\theta c  + \phi wl} 
+      \end{split} \]
+\end{itemize}
+
+\subsection{Frisch Elasticities}
+The size of changes in labour supply induced by permanent shifts to the wage structure can be approximated by Hicksian and Marshallian elasticities.
+
+The changes induced by expected changes in wages over time are captured by Frisch(marginal utility of wealth constant) elasticity.
+
+\begin{itemize}
+    \item The Frisch elasticity captures the change over time in hours worked in response to the anticipated evolution of wages, with the marginal utility of wealth unchanged.
+    \item The marginal utility unchanged because the wage change conveys no new information or because the wage change is temporary and life time approximately unchanged.
+    \item The expression for Frisch elasticity \[ \epsilon_h^F = - \frac{u_c u_{cc}}{u_{cc} u_{ll} - u_{cl}^2} \frac{w}{h} \]
+    \item Frisch intertemporal elasticities must be at least as large as Hicks elasticities.
+    \item To compute the Frisch elasticity we need the parameters that characterise intertemporal allocation,
+\end{itemize}
+
+\section{Empirical strategy}
