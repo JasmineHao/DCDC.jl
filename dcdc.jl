@@ -12,6 +12,8 @@ begin "Dynamic Decision Process"
     nM = 50;
     nT = 5;
     ddc = DynamicDecisionProcess(σ₀,0.8);
+    computeEquilibrium(ddc);
+
     plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
     plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
     data = simulate_ddc(nM,nT,ddc);

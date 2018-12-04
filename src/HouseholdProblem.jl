@@ -37,7 +37,7 @@ function find_optim(xin::Real,ηin::Real, lb::Real, β::Float64, trans::Function
         # η = 0.01;
         ff = c ->  - (util(c' * [1],ηin) + β * ValueFn(trans(xin,c' * [1])));
         f_opt = optimize(ff,[lb],[xin[1] - lb],[lb],SAMIN(),Optim.Options(g_tol = 1e-12,
-                         iterations = 15,
+                         iterations = 100,
                      store_trace = false,
                      show_trace = false));
         return(f_opt.minimizer[1])
