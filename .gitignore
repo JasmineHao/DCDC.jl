@@ -9,3 +9,4 @@
 *.log
 *.gz
 doc/Labour Lit Review/main.fdb_latexmk
+*.fls
