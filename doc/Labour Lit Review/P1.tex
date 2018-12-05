@@ -1,8 +1,8 @@
 \cite{Attanasio2015AggregatingSupply}
-Related 
+Related
 \begin{itemize}
     \item  Keane, M. P. and R. Rogerson (2012): Micro and Macro Labor Supply Elasticities: A Reassessment of Conventional Wisdom," Journal of Economic Literature, 50, 464-476.
-    \item Keane, M. P. and R. Rogerson (2015): Reconciling Micro and Macro Labor Supply Elasticities: A Structural Perspective," Annual Review of Economics, 7, 89-117. 
+    \item Keane, M. P. and R. Rogerson (2015): Reconciling Micro and Macro Labor Supply Elasticities: A Structural Perspective," Annual Review of Economics, 7, 89-117.
     \item Blundell, R., A. Bozio, and G. Laroque (2011): Labor Supply and the Extensive Margin," American Economic Review, 101, 482-486.
     \item Ljungqvist, L. and T. J. Sargent (2011): A Labor Supply Elasticity Accord?" American Economic Review, 101, 487-491.
     \item Rogerson, R. and J. Wallenius (2009): Micro and Macro Elasticities in a Life Cycle Model with Taxes," Journal of Economic Theory, 144, 2277-2292.
@@ -52,7 +52,7 @@ where $c$ is the consumption, $l$ is the female leisure, $P$ is indicator of wom
 $z$ are observables, $\chi,\xi$ are unobservables.
 
 \[ u(c_{h,t},l_{h,t},P_{h,t}) = \frac{M^{1-\gamma}_{h,t}}{1 - \gamma} \exp{(\xi P_{h,t} + \pi z_{h,t} + \zeta_{h,t} )} .\]
-The preference aggregator for hours of leisure and consumption is 
+The preference aggregator for hours of leisure and consumption is
 \[ M_{h,t}(c_{h,t},l_{h,t};z_{h,t},\chi_{h,t}) = \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right) \]
 $\alpha_{h,t}= \exp{(\psi_0 + \psi_z z_{h,t} + \chi_{h,t})}$
 
@@ -87,7 +87,7 @@ Within the dynamic problem just described, individuals make decisions taking sto
 \subsection{MRS, Marshallian and Hicksan Elasticities}
 \begin{itemize}
     \item  Within period resource not earned by women as : $y_t = (A_{h,t} + y_{h,t}^m - F(a_{h,t}) P_{h,t}) - \frac{A_{h,t+1}}{1 + r_{t+1}}$, is the resources saved into the next period.
-     \item Within period budget constraint: $c_t + w_t l_t = y_t + w_t H$. 
+     \item Within period budget constraint: $c_t + w_t l_t = y_t + w_t H$.
      \item Suppose the solution is interior with strictly positive number of working hours. F.O.C. for within-period optimality implies that the ratio of the marginal utility of leisure to that of consumption,
      $w_{h,t} = \frac{u_{l_{h,t}}}{u_{c_{h,t}}} = \alpha_{h,t} \frac{l_{h,t}^{-\theta}}{c_{h,t}^{-\phi}}$.
      \item The Marshallian elasticities for female hours of work and consumption \[ \begin{split}
@@ -96,7 +96,7 @@ Within the dynamic problem just described, individuals make decisions taking sto
       \item For the balanced growth, we would require $\phi = 1$. If preferences ware standard CES, $\phi = \theta$.\item If $\theta,\phi > 1$, $\epsilon^M_c < 1,\epsilon_h^M <  0 $.
       \item The static Hicksian response net off the increase in within0period resources due to the wage increase is \[ \begin{split}
           \epsilon_h^H & = \left(\epsilon_l^M - \frac{\partial \log l }{\partial \log (c+wl)} \frac{w(H-l)}{(c+wl)}\right)\frac{-l}{H-l} = \frac{-wl^2}{(\theta c + \phi w l )(H - l)} \\
-          \epsilon_c^H & = \epsilon_c^M + \frac{\partial \log c}{\partial \log (c+wl)} \frac{wl}{c+wl} = \frac{-c}{\theta c  + \phi wl} 
+          \epsilon_c^H & = \epsilon_c^M + \frac{\partial \log c}{\partial \log (c+wl)} \frac{wl}{c+wl} = \frac{-c}{\theta c  + \phi wl}
       \end{split} \]
 \end{itemize}
 
@@ -114,3 +114,33 @@ The changes induced by expected changes in wages over time are captured by Frisc
 \end{itemize}
 
 \section{Empirical strategy}
+The identification assumptions.
+The whole model in its various components is essential to evaluate the size and aggregation properties of the elasticity of lbour supply to changes in wages.
+Type of variabilities.
+\subsection{Equilibrium conditions}
+\begin{itemize}
+    \item The model uses equilibrium conditions. MRS or those that enters Euler equation.
+    \item $ E[h(X;\theta) \mathcal{Z}] = 0 $ where $h(\cdot)$ is a function of data $X$ and parameters $\theta$, and is linear in the vector of parameters.
+    \item 2LS and GMM to estimate the structural parameter $\theta$.
+    \item {\color{red} what is the $h(\cdot)$ function ?}
+\end{itemize}
+
+\subsection{Intratemporal margins}
+\begin{itemize}
+    \item Estimate the parameters of the within period utility function: $\theta$ $\phi$ and $\alpha$.
+    \item The equations we obtain that :
+    $\log(w_{h,t}) = \phi \log(c_{h,t}) - \phi \log(l_{h,t}) + \psi_z z_{h,t} +\psi_0 + \xi_{h,t}$.
+    \item Papers use differential changes in wages and hours across education groups to identify labour supply elasticities. MaCurdy(1983) Ziliak and Kniesner(1999) use age-education interaction as instrument for wages and hours.
+    \item Use 10 year birth cohort and education dummies with a quintic time trend(???).
+\end{itemize}
+
+\subsection{Euler equation estimation}
+The second step uses Euler equation to estimate the preference parameters that govern the inetrtemporal substitutability and non-seperability
+\begin{itemize}
+    \item The evolution of marginal utility of consumption:
+    \[ \begin{split}
+        \beta ( 1+ r_{t+1}) & u_{c_{h,t+1}}(\cdot) = u_{c_{h,t}}(\cdot) \epsilon_{h,t+1} \\
+        \eta_{h,t+1} & = \kappa_{h,t} + \log \beta + \log (1 + r_{t+1}) - \phi \Delta \log(c_{h,t+1}) 0 \gamma \Delta log(M_{h,t+1}) + \phi \Delta P_{h,t+1} + \pi \Delta z_{h,t+1} \\
+        \eta_{h,t+1} & = \log(\epsilon_{h,t+1}) - E[\log(\epsilon_{h,t+1})]
+    \end{split}  \]
+\end{itemize}
