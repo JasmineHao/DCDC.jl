@@ -14,12 +14,14 @@ begin "Dynamic Decision Process"
     nT = 5;
     ddc = DynamicDecisionProcess(σ₀,0.8);
     computeEquilibrium(ddc);
-
-    plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
-    plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
     data = simulate_ddc(nM,nT,ddc);
 end
 
+plot(ddc.ValueFn.xdata[:,1],ddc.ValueFn.y);
+plot!(ddc.PolicyFn.xdata[:,1],ddc.PolicyFn.y);
+scatter(ddc.PolicyFn.xdata[:,2]);
+checked = [check_ee(ddc) for i = 1:100];
+scatter(checked[checked.<2])
 
 # The moment condition is
 # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)

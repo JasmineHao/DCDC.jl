@@ -14,9 +14,9 @@ mutable struct Utility
     end
     function (self::Utility)(c::Union{Real,RealVector},η::Union{Real,RealVector})
         if (self.σ == 1)
-            return((η.+1).*log.(c))
+            return(exp.(η).*log.(c))
         else
-            return((η.+1).* (float.(c).^(1 - self.σ))./(1 - self.σ));
+            return(exp.(η).* (float.(c).^(1 - self.σ))./(1 - self.σ));
         end
     end
 
@@ -61,8 +61,8 @@ mutable struct DynamicDecisionProcess
         util = Utility(σ);
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
         s = convert(Array{Float64,1},range(2*ϵ,step=ϵ,length=nSolve)); #Convert it into 2dimension
-        # η = randn(nSolve)./3; #Normal distributed error
-        η=zeros(nSolve);
+        η = randn(nSolve); #Normal distributed error
+        # η=zeros(nSolve);
         # v = (util(s)./(1 -β));
         sdat = hcat(s,η);
 
@@ -107,7 +107,7 @@ function UpdateSolvedGrid!(ddc::DynamicDecisionProcess,T)
     while t < T
         @show t;
         s_new = ddc.trans(s_old,ddc.PolicyFn(x_new));
-        η_new = randn(ddc.nSolve)./3; #Generate η
+        η_new = randn(ddc.nSolve); #Generate η
         x_new = hcat(s_new,η_new);
         s_diff= abs2(s_old - s_new)/ddc.nSolve;
         s_old = deepcopy(s_new);
@@ -139,8 +139,8 @@ end
 
 function computeEquilibrium(ddc::DynamicDecisionProcess)
     i = 0;
-    diff_v=1;
-    while i < 30 & diff_v > 1e-3
+    diff_v=Inf;
+    while (i < 30) & (diff_v > 1e-3)
         old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
         UpdateVal!(ddc);
         @show diff_v=computeDistance(ddc,old_policy,old_value);
@@ -164,7 +164,8 @@ function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
     a = zeros(nM,nT);
     s[:,1] = x0[:,1];
     for t = 1:nT
-        x = hcat(s[:,t],randn(nM)/3);
+        # x = hcat(s[:,t],randn(nM)/3);
+        x = hcat(s[:,t],zeros(nM));
         a[:,t] = ddc.PolicyFn(x);
         s[:,t+1] = ddc.trans(s[:,t],a[:,t]);
     end
