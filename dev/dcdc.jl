@@ -7,11 +7,13 @@ using Distributed, Suppressor
 using Plots
 
 begin "Dynamic Decision Process"
-    σ₀ = 1;
+    σ₀ = 2;
     β = 0.8;
     nM = 50;
     nT = 5;
-    ddc = DynamicDecisionProcess(σ₀,0.8);
+    ddc=DynamicDecisionProcess(2,0.8);
+    computeEquilibrium(ddc);
+    checked = [check_ee(ddc) for i = 1:100];
     plot(ddc.ValueFn.xdata,ddc.ValueFn.y);
     plot!(ddc.PolicyFn.xdata,ddc.PolicyFn.y);
     data = simulate_ddc(nM,nT,ddc);
@@ -20,19 +22,6 @@ end
 
 # The moment condition is
 # u'(a_t) = β d_Trans(a_t,x_t) u'(a_t+1)
-function convert_data(data)
-    a_t  = [];
-    a_t1 = [];
-    s_t  = [];
-    s_t1 = [];
-    for t = 1:(nT-1)
-        a_t  = vcat(a_t,data.action[:,t]);
-        s_t  = vcat(s_t,data.state[:,t]);
-        a_t1 = vcat(a_t1,data.action[:,t+1]);
-        s_t1 = vcat(s_t1,data.action[:,t+1]);
-    end
-    return(action_t=a_t,action_t_1=a_t1,state_t=s_t,state_t_1=s_t1);
-end
 
 reshaped_data = convert_data(data);
 
