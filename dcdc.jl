@@ -1,11 +1,12 @@
-using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,
-    Expectations, QuantEcon, Statistics, GLM
-using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
-using DCDC
-using Test
-using Distributed, Suppressor
-using Plots
-
+begin
+    using LinearAlgebra, DataFrames,Optim, ForwardDiff, BenchmarkTools,Distributions,
+        Expectations, QuantEcon, Statistics, GLM
+    using Distributions: invsqrt2π, log2π, sqrt2, invsqrt2
+    using DCDC
+    using Test
+    using Distributed, Suppressor
+    using Plots
+end
 begin "Dynamic Decision Process"
     σ₀ = 1;
     β = 0.8;

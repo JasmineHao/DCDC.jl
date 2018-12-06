@@ -139,7 +139,8 @@ end
 
 function computeEquilibrium(ddc::DynamicDecisionProcess)
     i = 0;
-    while i < 30
+    diff_v=1;
+    while i < 30 & diff_v > 1e-3
         old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
         UpdateVal!(ddc);
         @show diff_v=computeDistance(ddc,old_policy,old_value);
