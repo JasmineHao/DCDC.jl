@@ -36,18 +36,42 @@ Therefore from the MRS condition, we have that
   \item We observe the wages, consumptions, leisure time and the exogenous variables: $\{w,c,l,z\}$
   \item From the reduced form regression, we have the preference shocks identified ($\psi_0,\psi_1$) with the assumption that $\xi_{h,t}$ is normal.
   \item We also identify the structural preference parameter $\phi$ and $\theta$.
-
+  \item After we obtain $\hat{\phi},\hat{\theta},\hat{\psi}_0,\hat{\psi}_1$ we cam back out $\hat{M}(c_{h,t},l_{h,t})$
+  \item {\color{red} Then $\log M(c_{h,t}, l_{h,t}) - \log \hat{M}(c_{h,t},l_{h,t})$ follows the assumed distribution}
 \end{itemize}
 \textbf{The Euler equation and what can be identified from it?}
 The Euler equation condition is that
 \[ \begin{split}
-  \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi} \\
-  = \beta (1+r_{t+1}) \exp{( \pi z_{h,t+1} + \zeta_{h,t+1} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi}
+  & \exp{( \pi z_{h,t} + \zeta_{h,t} )} M(c_{h,t},l_{h,t})^{-\gamma} c_{h,t}^{-\phi} \\
+  & = \beta (1+r_{t+1}) \exp{( \pi z_{h,t+1} + \zeta_{h,t+1} )} M(c_{h,t+1},l_{h,t+1})^{-\gamma} c_{h,t+1}^{-\phi} \\
+  M(c_{h,t},l_{h,t}) & = \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)
 \end{split} \]
+Log-linearize and plug in the estimated utility to have that
+\[ \begin{split}
+  \pi z_{h,t} & + \zeta_{h,t} - \phi c_{h,t} - \gamma \log(\hat{M}(c_{h,t},l_{h,t})) \\ & = \log(\beta) + \log(1+r_{t+1}) + \pi z_{h,t+1} + \zeta_{h,t+1} - \gamma \log(\hat{M}(c_{h,t+1},l_{h,t+1})) - \phi c_{h,t+1} \\
+  \text{Then we have}& \quad  \pi \Delta z_{h,t} + \Delta \zeta_{h,t} - \hat{\phi} \Delta c_{h,t} - \gamma \Delta \log \hat{M}(c_{h,t},l_{h,t}) + \beta + \log(1+r_t)= 0
+\end{split} \]
+What parameters we can estimate from the Euler equation
 \begin{itemize}
-  \item
+  \item It feels wierd that no transition of $z_{h,t}$ is assumed? But may be we don't need this assumption.
+  \item We can estimate the parameters $\pi,\gamma,\beta$ from the data?
+  \item {\color{red} The $r_{t}$ is observed? }
 \end{itemize}
 
+\section{Section with discrete choice}
+The additional parameters are $\xi$ and $F(a_{h,t})$ where $F(a_{h,t})$
+If there is a discrete choice to participate in labour market, then the utility function is defined as:
+\[ u(c_{h,t},l_{h,t},P_{h,t}) = \frac{M^{1-\gamma}_{h,t}}{1 - \gamma} \exp{(\xi P_{h,t} + \pi z_{h,t} + \zeta_{h,t} )} .\]
+\[ M_{h,t}(c_{h,t},l_{h,t};z_{h,t},\chi_{h,t}) = \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right) \]
+$\alpha_{h,t}= \exp{(\psi_0 + \psi_z z_{h,t} + \chi_{h,t})}$
+The intertemporal budget constraint is defined as:
+\[ A_{h,t+1} = (1 + r_{t+1}) \left( A_{h,t} + \left(w_{h,t}^f(H-l_{h,t}) - F(a_{h,t}) \right)P_{h,t} + y_{h,t}^m - c_{h,t} \right)\]
+\textbf{The parameters that we can get from MRS and Euler Equation}
+\begin{itemize}
+  \item Similarly, estimate the parameters within $M(c_{h,t},l_{h,t})$ function and obtain $\hat{M}(c_{h,t},l_{h,t})$.
+  \item The Euler equation is slightly different: \[ \xi \Delta P_{h,t}  \pi \Delta z_{h,t} + \Delta \zeta_{h,t} - \hat{\phi} \Delta c_{h,t} - \gamma \Delta \log \hat{M}(c_{h,t},l_{h,t}) + \beta + \log(1+r_t)= 0\]
+  \item $\xi$ is the entry cost?
+\end{itemize}
 \tbf{Random shocks: what's confusing to me.}
 \begin{itemize}
   \item No entry cost of labour market.
@@ -55,9 +79,10 @@ The Euler equation condition is that
   \item Are $\zeta$ and $\chi$ correlated?
 \end{itemize}
 
-\section{Section with discrete choice}
-The additional parameters are $\xi$ and $F(a_{h,t})$ where $F(a_{h,t})$
-If there is a discrete choice to participate in labour market, then the utility function is defined as:
-\[ u(c_{h,t},l_{h,t},P_{h,t}) = \frac{M^{1-\gamma}_{h,t}}{1 - \gamma} \exp{(\xi P_{h,t} + \pi z_{h,t} + \zeta_{h,t} )} .\]
-The intertemporal budget constraint is defined as:
-\[ A_{h,t+1} = (1 + r_{t+1}) \left( A_{h,t} + \left(w_{h,t}^f(H-l_{h,t}) - F(a_{h,t}) \right)P_{h,t} + y_{h,t}^m - c_{h,t} \right)\]
+\section{My estimation strategy?}
+I would propose a 3-step estimation strategy.
+In the first step, in addition to estimating $MRS$, I will need to estimate the transition of $z_{it}$ as well.(So that the agents have a prior about the future events.)
+
+In the second step, estimate the entry decision of the labour market.
+
+In the third step, estimate the forward looking continuous choice.
