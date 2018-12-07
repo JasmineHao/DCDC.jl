@@ -37,7 +37,7 @@ Therefore from the MRS condition, we have that
   \item From the reduced form regression, we have the preference shocks identified ($\psi_0,\psi_1$) with the assumption that $\xi_{h,t}$ is normal.
   \item We also identify the structural preference parameter $\phi$ and $\theta$.
   \item After we obtain $\hat{\phi},\hat{\theta},\hat{\psi}_0,\hat{\psi}_1$ we cam back out $\hat{M}(c_{h,t},l_{h,t})$
-  \item {\color{red} Then $\log M(c_{h,t}, l_{h,t}) - \log \hat{M}(c_{h,t},l_{h,t})$ follows the assumed distribution}
+  \item[Question:] {\color{red} Then $\log M(c_{h,t}, l_{h,t}) - \log \hat{M}(c_{h,t},l_{h,t})$ follows the assumed distribution of $\xi_{h,t}$? Is there potential endogeneity problem? ($\xi$ correlated with wage? other explainatory variables?)}
 \end{itemize}
 \textbf{The Euler equation and what can be identified from it?}
 The Euler equation condition is that
@@ -55,7 +55,9 @@ What parameters we can estimate from the Euler equation
 \begin{itemize}
   \item It feels wierd that no transition of $z_{h,t}$ is assumed? But may be we don't need this assumption.
   \item We can estimate the parameters $\pi,\gamma,\beta$ from the data?
-  \item {\color{red} The $r_{t}$ is observed? }
+  \item {\color{red} The $r_{t}$ is observed? The paper uses group aggregate labour supply or taxation as an IV for this step's identification}
+  \item [Comment:] not sure what harm this would bring to estimation...But is this neccesary if we want to aggregate the $M_{h,t}$?
+  \item [Question:] Page 16 of paper \cite{Attanasio2015AggregatingSupply}, lower part $M_{h,t}$ is non-linear function and unobserved parameters, so cannot be aggregated??
 \end{itemize}
 
 \section{Section with discrete choice}
@@ -82,6 +84,7 @@ The intertemporal budget constraint is defined as:
 \section{My estimation strategy?}
 I would propose a 3-step estimation strategy.
 In the first step, in addition to estimating $MRS$, I will need to estimate the transition of $z_{it}$ as well.(So that the agents have a prior about the future events.)
+From the first step, we obtain the estimator of $\log \hat{M}(c,h)$, and we also have the estimator of $w_{h,t}$.
 
 In the second step, estimate the entry decision of the labour market.
 
