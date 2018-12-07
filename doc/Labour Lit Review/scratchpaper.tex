@@ -7,12 +7,12 @@ The preference aggregator (why aggregator) for hours of leisure and consumption 
 $\alpha_{h,t}= \exp{(\psi_0 + \psi_z z_{h,t} + \chi_{h,t})}$
 
 Suppose for now there is no random discrete choice, the inter-temporal budget constraint:
-\[ A_{h,t+1} = (1 + r_{t+1}) \left( A_{h,t} + \left(w_{h,t}^f(H-l_{h,t}) + y_{h,t}^m - c_{h,t} \right)\]
+\[ A_{h,t+1} = (1 + r_{t+1}) \left( A_{h,t} + (w_{h,t}^f(H-l_{h,t}) + y_{h,t}^m - c_{h,t} \right)\]
 $A_{h,t}$ is the beginning asset holding, $r_t$ is the risk-free interest rate, $F$ is the fixed cost of work, dependent on the age of the youngest child, $a_{h,t}$. Female wages are given by $w_{h,t}^f$ and husband earning $y_{h,t}^m$.
 
 The maximization is done with respect to the following payoffs:
 \[\begin{split} \max_{c_t,l_t} & u(c_t,l_t) + \beta V(A_{t+1}) \\
-\text{subject to } & A_{t+1} = (1 + r_{t+1}) \left( A_{t} + \left(w_{h,t}^f(H-l_{t}) + y_{h,t}^m - c_{t} \right)
+\text{subject to } & A_{t+1} = (1 + r_{t+1}) \left( A_{t} + w_{h,t}^f(H-l_{t}) + y_{h,t}^m - c_{t} \right)
 \end{split}\]
 The first order condition with respect to $c_t, l_t and A_t$ are \[ \begin{split}
   u_c(c_t,l_t) + \beta (1+r_{t+1}) V'(A_{t+1}) = 0 \\
@@ -25,14 +25,18 @@ From the model we can have two conditions
   \textbf{Euler Equation:}& \quad u_{c,ht} = \beta u_{c,ht+1}\\
   \text{in addition:}& \quad u_{l,ht} = u_{l,ht+1} \frac{w_{h,t}}{w_{h,t+1}}
 \end{split} \]
-\[ \begin{split}
-u_c(c,l) & = \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi} \\ \text{ and }u_l(c,l) & = \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} \alpha_{h,t}(z_{h,t},\chi_{h,t})) l_{h,t}^{-\theta}  \end{split}\]
- \textbf{The parameters can be identified from MRS:}
- \begin{itemize}
-   \item 
- \end{itemize}
+
+
 Therefore from the MRS condition, we have that
-\[ w_{h,t}c_{h,t}^{-\phi} =\alpha_{h,t}(z_{h,t},\chi_{h,t})) l_{h,t}^{-\theta}  \]
+\[\begin{split}
+   w_{h,t}c_{h,t}^{-\phi} &= \alpha_{h,t}(z_{h,t},\chi_{h,t})) l_{h,t}^{-\theta}  \\
+   \log(w_{h,t})& + \phi \log(c_{h,t})  = \psi_0 + \psi_1 z_{h,t} + \xi_{h,t} - \theta \log(l_{h,t})
+\end{split} \]
+\textbf{The parameters can be identified from MRS:}
+\begin{itemize}
+  \item We observe the wages, consumptions, leisure time and the exogenous variables: $\{w,c,l,z\}$
+  \item From the reduced form regression, we have
+\end{itemize}
 The Euler equation condition is that
 \[ \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi} = \beta \]
 \tbf{Random shocks}
