@@ -22,11 +22,10 @@ The first order condition with respect to $c_t, l_t and A_t$ are \[ \begin{split
 From the model we can have two conditions
 \[ \begin{split}
   \textbf{MRS condition:}& \quad w_{ht} u_{c,ht} = l_{c,ht}\\
-  \textbf{Euler Equation:}& \quad u_{c,ht} = \beta u_{c,ht+1}\\
-  \text{in addition:}& \quad u_{l,ht} = u_{l,ht+1} \frac{w_{h,t}}{w_{h,t+1}}
+  \textbf{Euler Equation:}& \quad u_{c,ht} = \beta u_{c,ht+1}, \quad \text{in addition:}\quad u_{l,ht} = u_{l,ht+1} \frac{w_{h,t}}{w_{h,t+1}}
 \end{split} \]
 
-
+\textbf{The regression from MRS}
 Therefore from the MRS condition, we have that
 \[\begin{split}
    w_{h,t}c_{h,t}^{-\phi} &= \alpha_{h,t}(z_{h,t},\chi_{h,t})) l_{h,t}^{-\theta}  \\
@@ -35,11 +34,21 @@ Therefore from the MRS condition, we have that
 \textbf{The parameters can be identified from MRS:}
 \begin{itemize}
   \item We observe the wages, consumptions, leisure time and the exogenous variables: $\{w,c,l,z\}$
-  \item From the reduced form regression, we have
+  \item From the reduced form regression, we have the preference shocks identified ($\psi_0,\psi_1$) with the assumption that $\xi_{h,t}$ is normal.
+  \item We also identify the structural preference parameter $\phi$ and $\theta$.
+
 \end{itemize}
+\textbf{The Euler equation and what can be identified from it?}
 The Euler equation condition is that
-\[ \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi} = \beta \]
-\tbf{Random shocks}
+\[ \begin{split}
+  \exp{( \pi z_{h,t} + \zeta_{h,t} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi} \\
+  = \beta (1+r_{t+1}) \exp{( \pi z_{h,t+1} + \zeta_{h,t+1} )} \left( \frac{(c_{h,t}^{1 - \phi} - 1)}{1 - \phi} + (\alpha_{h,t}(z_{h,t},\chi_{h,t})) \frac{(l_{h,t}^{1 - \theta} -1)}{ 1 - \theta}\right)^{-\gamma} c_{h,t}^{-\phi}
+\end{split} \]
+\begin{itemize}
+  \item
+\end{itemize}
+
+\tbf{Random shocks: what's confusing to me.}
 \begin{itemize}
   \item No entry cost of labour market.
   \item The shock $\zeta$ induce increase of current period consumption/labour.
