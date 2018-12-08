@@ -83,9 +83,21 @@ The intertemporal budget constraint is defined as:
 
 \section{My estimation strategy?}
 I would propose a 3-step estimation strategy.
-In the first step, in addition to estimating $MRS$, I will need to estimate the transition of $z_{it}$ as well.(So that the agents have a prior about the future events.)
-From the first step, we obtain the estimator of $\log \hat{M}(c,h)$, and we also have the estimator of $w_{h,t}$.
 
-In the second step, estimate the entry decision of the labour market.
+\textbf{In the first step}, in addition to estimating $MRS$, I will need to estimate the transition of $z_{it}$ as well.(So that the agents have a prior about the future events.)
+From the first step, we obtain the estimator of $\log \hat{M}(c,h)$, and we also have the estimator of $w_{h,t}$. Non-parametrically estimate $c^*(\cdot),l^*(\cdot)$ as functions of $z_{h,t}$.
 
-In the third step, estimate the forward looking continuous choice.
+\textbf{The estimator:}
+\begin{itemize}
+  \item $c^{*}(z,w,y,A),l^{*}(z,w,y,A)$ with Nadaya-Watson estimator.
+  \item $p(z,w,y,A) = Pr(P=1|z,w,y,z)$ with non-parametric estimate.
+  \item $f(w'|w,P)$, $f(w'|w)$ estimator: can test whether the wage grows with participation decision(but may be correlated with unobserved variables, not sure what to do with it yet...HELP).
+\end{itemize}
+
+
+\textbf{In the second step}, estimate the entry decision of the labour market.
+The agent will choose $P_{h,t}=1$ when $E_{\zeta_{h,t},\xi_{h,t}} v(1,c^*(\cdot),l^*(\cdot),z_{h,t},(\zeta_{h,t},\xi_{h,t})) > E_{\zeta_{h,t},\xi_{h,t}} v(0,c^*(\cdot),l^*(\cdot),z_{h,t},(\zeta_{h,t},\xi_{h,t}))$
+Assume that $v(\cdot)$ is the continuation value associated with the parameters.
+
+\textbf{In the third step}, estimate the forward looking continuous choice.
+It follows that $c^*(),l^*()$ are the optimal rule.
