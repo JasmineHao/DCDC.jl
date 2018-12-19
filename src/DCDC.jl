@@ -23,3 +23,8 @@ module DCDC
     include("HouseholdProblem.jl")
     include("misc.jl")
 end # module]
+
+a = zeros(10)
+Threads.@threads for i = 1:10
+   a[i] = Threads.threadid()
+end

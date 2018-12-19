@@ -10,3 +10,4 @@
 *.gz
 doc/Labour Lit Review/main.fdb_latexmk
 *.fls
+optimization_sandbox.jl
