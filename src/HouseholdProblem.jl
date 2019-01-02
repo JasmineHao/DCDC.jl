@@ -27,7 +27,8 @@ mutable struct Transition
     α::Real
     Transition(α)=new(α);
     function (self::Transition)(c::Union{Real,RealVector},s::Union{Real,RealVector})
-    return(1.05 * s.^(self.α) .- c)
+    # return(1.1 * s.^(self.α) .- c)
+    return(α*(s-c.+ 2.0))
     end
 end
 
@@ -66,11 +67,15 @@ mutable struct DynamicDecisionProcess
         nSolve = 100;
         v_tol = 0.001;
         ϵ     = 0.005;
+        step_length= 2/nSolve;
         util  = Utility(σ);
         trans = Transition(α);
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        s = convert(Array{Float64,1},range(2*ϵ+1,step=ϵ,length=nSolve)); #Convert it into 2dimension
-        η = randn(nSolve)/100; #Normal distributed error
+        s = convert(Array{Float64,1},range(2*ϵ,step=step_length,length=nSolve));
+        # TN=TruncatedNormal(0, 1, 0, 10);
+        # s = rand(TN,nSolve);
+        #Convert it into 2dimension
+        η = randn(nSolve); #Normal distributed error
         # η=zeros(nSolve);
         # v = (util(s)./(1 -β));
         sdat = hcat(s,η);
@@ -80,7 +85,7 @@ mutable struct DynamicDecisionProcess
         PolicyFn = ApproxFn(sdat,c_opt,:gaussian,2);
 
         ValueFn = ApproxFn(s,c_opt,:gaussian,2);
-        ValueFn.h = 4.5; #Try this
+        ValueFn.h = 5; #Try this
         dtrans = (c,s) -> Tracker.gradient(trans,c,s);
         dutil  = (c,η) -> Tracker.gradient(util,c,η)[1].data;
         ddc = new(float(σ),util,trans,PolicyFn,ValueFn,β,dtrans,dutil,nSolve);
@@ -125,15 +130,14 @@ function UpdateSolvedGrid!(ddc::DynamicDecisionProcess,T)
 end
 
 
-function UpdateVal!(ddc::DynamicDecisionProcess)
+function UpdateVal!(ddc::DynamicDecisionProcess,T::Int)
     c_opt = ddc.PolicyFn.y;
-    s = ddc.PolicyFn.xdata[:,1];
+    s = ddc.ValueFn.xdata;
     η = ddc.PolicyFn.xdata[:,2];
     iter = 0
     tol = 1e-3
     v_diff = Inf
-    while (iter < 3 && v_diff > tol)
-        @show iter;
+    while (iter < T && v_diff > tol)
         for n = 1:ddc.nSolve
             c_opt[n] = find_optim(s[n],η[n],1e-6,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
         end
@@ -141,7 +145,7 @@ function UpdateVal!(ddc::DynamicDecisionProcess)
         y = ddc.util(c_opt) + ddc.β * ddc.ValueFn(ddc.trans(s,c_opt));
         # println("Iteration:",iter);
         # @show iter;
-        @show v_diff = mean(abs.(y - ddc.ValueFn.y));
+        # @show v_diff = mean(abs.(y - ddc.ValueFn.y));
         UpdateVal(ddc.ValueFn,y);
         iter += 1;
     end
@@ -154,9 +158,9 @@ function computeEquilibrium(ddc::DynamicDecisionProcess)
     tol = 1/ddc.nSolve;
     while (i < 30) & (diff_v > tol)
         old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
-        UpdateVal!(ddc);
+        UpdateVal!(ddc,3);
         @show diff_v=computeDistance(ddc,old_policy,old_value);
-        UpdateSolvedGrid!(ddc::DynamicDecisionProcess,1);
+        UpdateSolvedGrid!(ddc::DynamicDecisionProcess,3);
         i+=1;
     end
 end
@@ -175,9 +179,10 @@ function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
     s = zeros(nM,nT+1);
     a = zeros(nM,nT);
     s[:,1] = x0[:,1];
+    du = Uniform(lb[2],ub[2]);
     for t = 1:nT
         # x = hcat(s[:,t],randn(nM)/3);
-        x = hcat(s[:,t],zeros(nM));
+        x = hcat(s[:,t],rand(du,nM)); #This is a bit problematic
         a[:,t] = ddc.PolicyFn(x);
         s[:,t+1] = ddc.trans(a[:,t],s[:,t]);
     end
@@ -208,7 +213,7 @@ mutable struct EulerEquation
         ϵ     = 0.005;
         util  = Utility(σ);
         trans = Transition(α);
-        nSolve = 100;
+        nSolve = 500;
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
         s = convert(Array{Float64,1},range(2*ϵ+1,step=ϵ,length=nSolve)); #Convert it into 2dimension
         η = randn(nSolve)/100; #Normal distributed error

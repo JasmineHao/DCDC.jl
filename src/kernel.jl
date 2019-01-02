@@ -240,16 +240,6 @@ mutable struct ApproxFn
             error("Dimension of input incorrect")
         end
     end
-    # function (self::ApproxFn)(x_in::Real)
-    #     y_in = predict(self.model,hcat([x_in]));
-    #     return(y_in)
-    # end
-    #
-    # function (self::ApproxFn)(x_in::RealVector)
-    #     y_in = predict(self.model,x_in);
-    #     return(y_in)
-    # end
-
 end
 
 function find_nn(neighbour_dist::Array{Float64,1},n::Int)
@@ -263,6 +253,15 @@ function find_nn(neighbour_dist::Array{Float64,1},n::Int)
          end
     end
     return(convert(Array{Int,1},index));
+end
+
+function apply_row(fun,xdata)
+    n_rows=size(xdata,1)
+    val = zeros(n_rows);
+    for i = 1:n_rows
+        val[i]=fun(xdata[i,:])
+    end
+    return(val);
 end
 
 function estimatenn(x::Union{Real,RealVector},af::ApproxFn)
@@ -310,10 +309,6 @@ function UpdateVal(self::ApproxFn,y)
     # fit!(self.model,self.x,self.y);
     return(self)
 end
-
-
-
-
 
 function forecast_fit(Kern::Kernel)
     yfit = zeros(Kern.n)

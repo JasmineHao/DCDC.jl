@@ -16,7 +16,7 @@ module DCDC
     forecast,bw_constant,compute_w,ApproxFn,Parameter, State, profit, ProfitFn,
     DynamicDecisionProcess,dynamic_decision_process,simulate_ddc,
     Utility, Transition, find_optim, UpdateVal!,computeEquilibrium,check_ee,
-    convert_data
+    convert_data, EulerEquation, simulate_ee, _moment
 
     include("kernel.jl")
     include("param.jl")
