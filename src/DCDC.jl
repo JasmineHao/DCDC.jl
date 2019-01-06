@@ -13,13 +13,14 @@ module DCDC
 
     # export Utility,ApproxFn,UpdateVal,UpdateData, DynamicDecisionProcess, Transition
     export RealVector,ekernel4, ekernel2, Kernel,estimate,
-    forecast,bw_constant,compute_w,ApproxFn,Parameter, State, profit, ProfitFn,
+    forecast,bw_constant,compute_w,ApproxFn,State,
     DynamicDecisionProcess,dynamic_decision_process,simulate_ddc,
     Utility, Transition, find_optim, UpdateVal!,computeEquilibrium,check_ee,
     convert_data, EulerEquation, simulate_ee, _moment
+    # Parameter, State, profit, ProfitFn,
 
     include("kernel.jl")
-    include("param.jl")
+    # include("param.jl")
     include("HouseholdProblem.jl")
     include("misc.jl")
 end # module]

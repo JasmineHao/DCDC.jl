@@ -219,21 +219,22 @@ mutable struct ApproxFn
         self=new(xdata,y,n,h,q,kern);
         return(self)
     end
+
     function (self::ApproxFn)(x::Union{Real,RealVector})
         if ((typeof(x)<:Real) & (self.q==1))
-            return(forecast(x,self));
+            return(forecast(x,self,0));
         elseif (typeof(x)<:Vector)& (self.q>1) &(size(x)[1]==self.q)
-            return(forecast(x,self));
+            return(forecast(x,self,0));
         elseif (typeof(x)<:Vector)&(self.q==1)
             forecast_y = zeros(size(x)[1]);
             for i = 1:size(x)[1]
-                forecast_y[i] = forecast(x[i],self)[1];
+                forecast_y[i] = forecast(x[i],self,0)[1];
             end
             return(forecast_y);
         elseif (self.q>1)&(size(x)[2]==self.q)
             forecast_y = zeros(size(x)[1]);
             for i = 1:size(x)[1]
-                forecast_y[i] = forecast(x[i,:],self);
+                forecast_y[i] = forecast(x[i,:],self,0);
             end
             return(forecast_y);
         else
@@ -243,10 +244,11 @@ mutable struct ApproxFn
 end
 
 function find_nn(neighbour_dist::Array{Float64,1},n::Int)
-    neighbour_dist_sort = sort(neighbour_dist); #Sort from smallest to largest
+    neighbour_dist_sort = unique(sort(neighbour_dist))[1:n]; #Sort from smallest to
+    # largest
     index=zeros(n);
     for i = 1:n
-         for j = 1:length(neighbour_dist_sort)
+         for j = 1:length(neighbour_dist)
              if (neighbour_dist_sort[i]==neighbour_dist[j])
                 index[i]=j;
             end
@@ -256,18 +258,43 @@ function find_nn(neighbour_dist::Array{Float64,1},n::Int)
 end
 
 function apply_row(fun,xdata)
-    n_rows=size(xdata,1)
-    val = zeros(n_rows);
-    for i = 1:n_rows
-        val[i]=fun(xdata[i,:])
+    n_rows=size(xdata,1);
+    n_data_col=size(xdata,2);
+    # n_cols=size(xdata,2);
+    if n_data_col > 1
+        n_cols = length(fun(xdata[1,:]));
+        if n_cols > 1
+            val = zeros(n_rows,n_cols);
+            for i = 1:n_rows
+                val[i,:]=fun(xdata[i,:])
+            end
+        else
+            val = zeros(n_rows);
+            for i = 1:n_rows
+                val[i]=fun(xdata[i,:])
+            end
+        end
+    else
+        n_cols = length(fun(xdata[1]));
+        if n_cols > 1
+            val = zeros(n_rows,n_cols);
+            for i = 1:n_rows
+                val[i,:]=fun(xdata[i])
+            end
+        else
+            val = zeros(n_rows);
+            for i = 1:n_rows
+                val[i]=fun(xdata[i])
+            end
+        end
     end
     return(val);
 end
 
-function estimatenn(x::Union{Real,RealVector},af::ApproxFn)
+function estimatenn(x::Union{Real,RealVector},af::ApproxFn,n::Int)
     # Use 10 nearest neighbour, I don't know, may be should do more
-    dist2=y->abs2(x-y);
-    n=10;
+    dist2=y->abs2(y.- x);
+    # n=10;
     neighbour_dist = apply_row(dist2,af.xdata);
     nn_index=find_nn(neighbour_dist,n);
     w=zeros(af.n);
@@ -275,32 +302,55 @@ function estimatenn(x::Union{Real,RealVector},af::ApproxFn)
         w[i]=1/n;
     end
     w_diag = diagm(0=>w);
-    β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
-    return(β_kernel);
+    # β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+    return(w_diag);
 end
 # The ApproxFn
 # The nonparametric function such that Y = ApproxFn(X)
 function estimate(x::Union{Real,RealVector},af::ApproxFn)
     w = zeros(af.n);
     compute_w(x,af.xdata,af.h,w,af.n,af.kern.kern);
-    if sum(w)==0
-        return(estimatenn(x,af));
+    # if (sum(w)==0)
+    # @show sum(w.>0);
+    if (sum(w.>0) < 5)
+        nn = max(1,sum(w.>0));
+        return(estimatenn(x,af,nn));
     else
         w_diag = diagm(0=>w);
-        β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
-        return(β_kernel);
+        # β_kernel = inv(af.xdata'*w_diag * af.xdata) * (af.xdata' * w_diag * af.y);
+        return(w_diag);
     end
 end
 
-function forecast(x::Union{Real,RealVector},af::ApproxFn)
-    β_kernel = estimate(x,af);
-    return(x' * β_kernel);
+function forecast(x::Union{Real,RealVector},af::ApproxFn,p::Int)
+    w_diag = estimate(x,af);
+    xdata = ones(af.n);
+    diff_pop=apply_row(y->y-x,af.xdata);
+    for pp = 1:p
+        xdata=hcat(x,diff_pop.^p);
+    end
+    β_kernel = inv(xdata' * w_diag * xdata) * (xdata' * w_diag * af.y);
+    return(β_kernel[1]);
 end
+
+function forecastnn(x::Union{Real,RealVector},af::ApproxFn)
+    # KNN method to forecast
+    # Use 10 nearest neighbour, I don't know, may be should do more
+    w_diag = estimatenn(x,af);
+    x = ones(af.n);
+    diff_pop=apply_row(y->y-x,af.xdata);
+    for pp = 1:p
+        x=hcat(x,diff_pop.^p);
+    end
+    β_kernel = inv(x' * w_diag * x) * (x' * w_diag * af.y);
+    return(β_kernel[1]);
+end
+
 
 function UpdateData(self::ApproxFn,xdata,y)
     self.xdata = xdata;
     self.y     = y;
-    fit!(self.model,self.x,self.y);
+    # fit!(self.model,self.x,self.y);
     return(self)
 end
 

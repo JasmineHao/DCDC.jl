@@ -1,13 +1,13 @@
 function _moment(θ)
     (β,σ) = θ;
     util = Utility(σ);
-    dutil = (x) -> Tracker.gradient(util,x)[1].data;
-    dudc  = dutil.(c_t);
-    dudc1 = dutil.(c_t1);
-    dtrans=ee.dtrans;
-    dtrans_s = (c,s) -> dtrans(c,s)[2].data;
+    dutil = (s) -> Tracker.gradient(util,s)[1].data;
+    dudc  = dutil.(a_t);
+    dudc1 = dutil.(a_t1);
+    dtrans=ddc.dtrans;
+    dtrans_s = (a,s) -> dtrans(a,s)[2].data;
 
-    return(dudc - β .* dtrans_s.(c_t,x_t) .* dudc1)
+    return(dudc - β .* dtrans_s.(a_t,s_t) .* dudc1)
 end
 
 
@@ -16,7 +16,7 @@ end
 mutable struct Estimation
     data
     Vhat::ApproxFn
-    Transition::ApproxFn
+    Transition::Transition
     exWeight::Array{Float64,2}
     ltp1::Array{Int,1}
     invl::Array{Int,1}
@@ -27,16 +27,20 @@ mutable struct Estimation
     function Estimation(data)
         a=data.action,s=data.state;
         nT=size(a,2);nM=size(a,1);
-        a_t = []; a_t1 = []; s_t = [];
-        for t = 1:nT
-            if t == 1
-
-            elseif t == nT
-
-            else
-
-            end
+        a_t = []; a_t1 = []; s_t = []; s_t1=[];
+        a_t = [];
+        a_t1 = [];
+        s_t = [];
+        for t = 1:(nT-1)
+            a_t  = vcat(a_t,data.action[:,t]);
+            s_t  = vcat(s_t,data.state[:,t]);
+            a_t1 = vcat(a_t1,data.action[:,t+1]);
+            s_t1 = vcat(s_t1,data.state[:,t+1])
         end
+        # First estimate transition density
+
+
+    end
         # for t = 1:(nT-1)
         #     global a_t  = vcat(a_t,data.action[:,t]);
         #     global s_t  = vcat(s_t,data.state[:,t]);

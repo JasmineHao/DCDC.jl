@@ -25,10 +25,12 @@ end
 
 mutable struct Transition
     α::Real
-    Transition(α)=new(α);
+    A::Real
+    Transition(α,A)=new(α,A);
     function (self::Transition)(c::Union{Real,RealVector},s::Union{Real,RealVector})
     # return(1.1 * s.^(self.α) .- c)
-    return(α*(s-c.+ 2.0))
+    # return(α*(s-c.+ 2.0))
+    return (self.A * (s.^(self.α)) .- c)
     end
 end
 
@@ -41,16 +43,22 @@ end
 # end
 
 # How to use sub types?
-function find_optim(xin::Real,ηin::Real, lb::Real, β::Float64, trans::Transition, util::Utility,ValueFn::ApproxFn)
+function find_optim(xin::Real,ηin::Real, lb::Real,ub::Real, β::Float64, trans::Transition, util::Utility,ValueFn::ApproxFn)
     @suppress begin
         # η = 0.01;
         ff = c ->  - (util(c' * [1],ηin) + β * ValueFn(trans(c' * [1],xin)));
-        f_opt = optimize(ff,[lb],[xin[1] - lb],[lb],SAMIN(),Optim.Options(g_tol = 1e-12,
-                         iterations = 100,
+        # ub = trans(0,xin[1])-lb;
+        f_opt = optimize(ff,[lb],[ub],[lb],SAMIN(),Optim.Options(g_tol = 1e-12,
+                         iterations = 1000,
                      store_trace = false,
                      show_trace = false));
         return(f_opt.minimizer[1])
     end
+end
+
+mutable struct State
+    s::Union{Real,RealVector} #Observed
+    η::Real #Unobserved
 end
 
 mutable struct DynamicDecisionProcess
@@ -63,29 +71,32 @@ mutable struct DynamicDecisionProcess
     dtrans::Function
     dutil::Function
     nSolve::Int
-    function DynamicDecisionProcess(σ::Real,β::Float64,α::Real)
+    function DynamicDecisionProcess(σ::Real,β::Float64,α::Real,A::Real)
         nSolve = 100;
         v_tol = 0.001;
-        ϵ     = 0.005;
-        step_length= 2/nSolve;
+        ϵ     = 0.05;
+        # step_length= 2/nSolve;
+        step_length=ϵ;
         util  = Utility(σ);
-        trans = Transition(α);
+        trans = Transition(α,A);
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
         s = convert(Array{Float64,1},range(2*ϵ,step=step_length,length=nSolve));
         # TN=TruncatedNormal(0, 1, 0, 10);
         # s = rand(TN,nSolve);
         #Convert it into 2dimension
-        η = randn(nSolve); #Normal distributed error
+        η = randn(nSolve)/100; #Normal distributed error
         # η=zeros(nSolve);
         # v = (util(s)./(1 -β));
         sdat = hcat(s,η);
 
-
+        s = vcat([1e-10*ϵ],s);
         c_opt = zeros(nSolve);
+        v_first=zeros(nSolve+1);
         PolicyFn = ApproxFn(sdat,c_opt,:gaussian,2);
-
-        ValueFn = ApproxFn(s,c_opt,:gaussian,2);
-        ValueFn.h = 5; #Try this
+        ValueFn = ApproxFn(s,v_first,:gaussian,2);
+        PolicyFn.h = 0.05 * PolicyFn.h;
+        ValueFn.h = 0.005;
+        # ValueFn.h = 1; #Try this
         dtrans = (c,s) -> Tracker.gradient(trans,c,s);
         dutil  = (c,η) -> Tracker.gradient(util,c,η)[1].data;
         ddc = new(float(σ),util,trans,PolicyFn,ValueFn,β,dtrans,dutil,nSolve);
@@ -112,41 +123,52 @@ end
 function UpdateSolvedGrid!(ddc::DynamicDecisionProcess,T)
     # Update the grade for solving the points
     # ddc.policy
-    # η_new = randn(ddc.nSolve); #Generate η
-    η_new = zeros(ddc.nSolve); #Generate η
-    s_new = ddc.PolicyFn.xdata[:,1];
+    η_new = randn(ddc.nSolve)/100; #Generate η
+    # η_new = zeros(ddc.nSolve); #Generate η
+    s_new = ddc.ValueFn.xdata;
     x_new = hcat(s_new,η_new);
     s_old = s_new;
+    val_new = val_old = ddc.ValueFn.y;
     t = 0;
     while t < T
-        @show t;
-        s_new = ddc.trans(ddc.PolicyFn(x_new),s_old);
-        η_new = randn(ddc.nSolve)/100; #Generate η
+        # @show t;
+        c_new = ddc.PolicyFn(x_new);
+        s_new = ddc.trans(c_new,s_old);
+        UpdateData(ddc.ValueFn,s_old,val_old);
+
+        val_new = ddc.util(c_new,x_new[:,2]) + ddc.β * ddc.ValueFn(s_new);
+        val_old = deepcopy(val_new);
+        s_new[s_new.<0].=minimum(s_old);
+        η_new = randn(ddc.nSolve); #Generate η
         x_new = hcat(s_new,η_new);
         s_diff= abs2(s_old - s_new)/ddc.nSolve;
         s_old = deepcopy(s_new);
         t += 1;
     end
+
 end
 
 
 function UpdateVal!(ddc::DynamicDecisionProcess,T::Int)
     c_opt = ddc.PolicyFn.y;
-    s = ddc.ValueFn.xdata;
+    s = ddc.PolicyFn.xdata[:,1];
     η = ddc.PolicyFn.xdata[:,2];
     iter = 0
-    tol = 1e-3
+    tol = 1e-8
     v_diff = Inf
     while (iter < T && v_diff > tol)
+        ϵ = minimum(s)*0.9;
+        lb = ϵ;
         for n = 1:ddc.nSolve
-            c_opt[n] = find_optim(s[n],η[n],1e-6,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
+            ub = max(0.9 * ddc.trans(0,s[n]),ddc.trans(0,s[n])-2*ϵ);
+            c_opt[n] = find_optim(s[n],η[n],lb,ub,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
         end
 
-        y = ddc.util(c_opt) + ddc.β * ddc.ValueFn(ddc.trans(s,c_opt));
+        y = ddc.util(c_opt) + ddc.β * ddc.ValueFn(ddc.trans(c_opt,s));
         # println("Iteration:",iter);
         # @show iter;
         # @show v_diff = mean(abs.(y - ddc.ValueFn.y));
-        UpdateVal(ddc.ValueFn,y);
+        UpdateVal(ddc.ValueFn,vcat([ddc.ValueFn.y[1]],y));
         iter += 1;
     end
     UpdateVal(ddc.PolicyFn,c_opt);
@@ -155,36 +177,58 @@ end
 function computeEquilibrium(ddc::DynamicDecisionProcess)
     i = 0;
     diff_v=Inf;
-    tol = 1/ddc.nSolve;
-    while (i < 30) & (diff_v > tol)
+    diff_v_old = 0;
+    diff_r=Inf;
+    # tol = 1/ddc.nSolve;
+    tol_r = 0.1;
+    tol_v = 1e-5;
+    # while (i < 30) & (diff_v > tol)
+    while (i < 30) & (diff_r > tol_r) & (diff_v > tol_v)
         old_value=deepcopy(ddc.ValueFn); old_policy=deepcopy(ddc.PolicyFn);
-        UpdateVal!(ddc,3);
+        UpdateVal!(ddc,10);
         @show diff_v=computeDistance(ddc,old_policy,old_value);
-        UpdateSolvedGrid!(ddc::DynamicDecisionProcess,3);
+        @show diff_r = abs(diff_v-diff_v_old) / diff_v;
+        diff_v_old = diff_v;
+        # UpdateSolvedGrid!(ddc::DynamicDecisionProcess,2);
         i+=1;
     end
 end
+
+
 # simulate dynamic discrete choice problem from the solved problem
 function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
-    lb = minimum(ddc.PolicyFn.xdata,dims=1);
-    ub = maximum(ddc.PolicyFn.xdata,dims=1);
-    if lb[2]==ub[2]
-        ub[2] = lb[2]+1e-6
-    end
-    x0 = zeros(nM,ddc.PolicyFn.q); #Initial states
-    for i = 1:ddc.PolicyFn.q
-        du = Uniform(lb[i],ub[i]);
-        x0[:,i] = rand(du,nM);
-    end
-    s = zeros(nM,nT+1);
-    a = zeros(nM,nT);
-    s[:,1] = x0[:,1];
-    du = Uniform(lb[2],ub[2]);
-    for t = 1:nT
+    # lb = minimum(ddc.PolicyFn.xdata,dims=1);
+    # ub = maximum(ddc.PolicyFn.xdata,dims=1);
+    # if lb[2]==ub[2]
+    #     ub[2] = lb[2]+1e-6
+    # end
+    # x0 = zeros(nM,ddc.PolicyFn.q); #Initial states
+    # for i = 1:ddc.PolicyFn.q
+    #     du = Uniform(lb[i],ub[i]);
+    #     x0[:,i] = rand(du,nM);
+    # end
+    du=DiscreteUniform(1,ddc.nSolve); #Draw from the nSolved states
+    # s = zeros(nM,nT+1);
+    # a = zeros(nM,nT);
+    # s[:,1] = x0[:,1];
+    # du = Uniform(lb[2],ub[2]);
+
+    n = 1;
+    s = Array{State,2}; #nM x nT state
+    a = Array{State,2}; #nM x nT action
+    while n < nM
+
+        s[n,1] = State()
+        for t = 1:(nT-1)
         # x = hcat(s[:,t],randn(nM)/3);
-        x = hcat(s[:,t],rand(du,nM)); #This is a bit problematic
-        a[:,t] = ddc.PolicyFn(x);
-        s[:,t+1] = ddc.trans(a[:,t],s[:,t]);
+            x = hcat(s[:,t],randn()/100); #This is a bit problematic
+            a[:,t] = ddc.PolicyFn(x);
+            s_1 = ddc.trans(a[:,t],s[:,t]);
+            if length(s_1 .< 0) > 0
+                break;
+            end
+            s[:,t+1] = s_1;
+        end
     end
     return(state=s,action=a);
 end
@@ -195,7 +239,8 @@ function check_ee(ddc::DynamicDecisionProcess)
     a0=ddc.PolicyFn([s0,ϵ0])[1];
     s1=ddc.trans(a0,s0);
     a1=ddc.PolicyFn([s1,0])[1];
-    return(ddc.dutil(a0,0)- 1.05*ddc.β * ddc.dutil(a1,0));
+    ds=ddc.dtrans(a0,s0)[2].data;
+    return(ddc.dutil(a0,0)- ds *ddc.β * ddc.dutil(a1,0));
 end
 
 
