@@ -15,7 +15,7 @@ module DCDC
     export RealVector,ekernel4, ekernel2, Kernel,estimate,
     forecast,bw_constant,compute_w,ApproxFn,State,
     DynamicDecisionProcess,dynamic_decision_process,simulate_ddc,
-    Utility, Transition, find_optim, UpdateVal!,computeEquilibrium,check_ee,
+    Utility, Transition, State, find_optim, UpdateVal!,computeEquilibrium,check_ee,
     convert_data, EulerEquation, simulate_ee, _moment
     # Parameter, State, profit, ProfitFn,
 

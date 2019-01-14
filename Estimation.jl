@@ -7,7 +7,7 @@ function _moment(θ)
     dtrans=ddc.dtrans;
     dtrans_s = (a,s) -> dtrans(a,s)[2].data;
 
-    return(dudc - β .* dtrans_s.(a_t,s_t) .* dudc1)
+    return(dudc - β .* dtrans_s.(a_t1,s_t1) .* dudc1)
 end
 
 

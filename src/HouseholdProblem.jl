@@ -48,6 +48,7 @@ function find_optim(xin::Real,ηin::Real, lb::Real,ub::Real, β::Float64, trans:
         # η = 0.01;
         ff = c ->  - (util(c' * [1],ηin) + β * ValueFn(trans(c' * [1],xin)));
         # ub = trans(0,xin[1])-lb;
+        @show init_val = (ub + lb) / 2;
         f_opt = optimize(ff,[lb],[ub],[lb],SAMIN(),Optim.Options(g_tol = 1e-12,
                          iterations = 1000,
                      store_trace = false,
@@ -59,6 +60,18 @@ end
 mutable struct State
     s::Union{Real,RealVector} #Observed
     η::Real #Unobserved
+    State()=new(0,0);
+    function State(s::Real, η::Real)
+        new([s],η);
+    end
+
+    function State(s::Array, η::Real)
+        new(s,η);
+    end
+end
+
+function vectorize(s::State)
+    return(vcat(s.s,s.η))
 end
 
 mutable struct DynamicDecisionProcess
@@ -72,7 +85,7 @@ mutable struct DynamicDecisionProcess
     dutil::Function
     nSolve::Int
     function DynamicDecisionProcess(σ::Real,β::Float64,α::Real,A::Real)
-        nSolve = 100;
+        nSolve = 400;
         v_tol = 0.001;
         ϵ     = 0.05;
         # step_length= 2/nSolve;
@@ -80,7 +93,7 @@ mutable struct DynamicDecisionProcess
         util  = Utility(σ);
         trans = Transition(α,A);
         # x = hcat(range(2*ϵ,step= ϵ,length=nSolve)); #Convert it into 2dimension
-        s = convert(Array{Float64,1},range(2*ϵ,step=step_length,length=nSolve));
+        s = convert(Array{Float64,1},range(ϵ,step=step_length,length=nSolve));
         # TN=TruncatedNormal(0, 1, 0, 10);
         # s = rand(TN,nSolve);
         #Convert it into 2dimension
@@ -94,8 +107,8 @@ mutable struct DynamicDecisionProcess
         v_first=zeros(nSolve+1);
         PolicyFn = ApproxFn(sdat,c_opt,:gaussian,2);
         ValueFn = ApproxFn(s,v_first,:gaussian,2);
-        PolicyFn.h = 0.05 * PolicyFn.h;
-        ValueFn.h = 0.005;
+        PolicyFn.h =  0.5 * PolicyFn.h;
+        ValueFn.h =  0.5 * ValueFn.h ;
         # ValueFn.h = 1; #Try this
         dtrans = (c,s) -> Tracker.gradient(trans,c,s);
         dutil  = (c,η) -> Tracker.gradient(util,c,η)[1].data;
@@ -169,7 +182,7 @@ function UpdateVal!(ddc::DynamicDecisionProcess,T::Int)
         # @show iter;
         # @show v_diff = mean(abs.(y - ddc.ValueFn.y));
         UpdateVal(ddc.ValueFn,vcat([ddc.ValueFn.y[1]],y));
-        iter += 1;
+        @show iter += 1;
     end
     UpdateVal(ddc.PolicyFn,c_opt);
 end
@@ -207,40 +220,47 @@ function simulate_ddc(nM,nT,ddc::DynamicDecisionProcess)
     #     du = Uniform(lb[i],ub[i]);
     #     x0[:,i] = rand(du,nM);
     # end
-    du=DiscreteUniform(1,ddc.nSolve); #Draw from the nSolved states
+    # du=DiscreteUniform(1,ddc.nSolve); #Draw from the nSolved states
     # s = zeros(nM,nT+1);
     # a = zeros(nM,nT);
     # s[:,1] = x0[:,1];
     # du = Uniform(lb[2],ub[2]);
 
-    n = 1;
-    s = Array{State,2}; #nM x nT state
-    a = Array{State,2}; #nM x nT action
-    while n < nM
-
-        s[n,1] = State()
+    # du=DiscreteUniform(1,ddc.nSolve); #Draw from the nSolved states
+    du=Uniform(2,20);
+    s = [ State() for i=zeros(nM,nT)]; #nM x nT state
+    a = [ 0.0 for i=zeros(nM,nT)]; #nM x nT action
+    for n = 1:nM
+        ind_1=rand(du);
+        # s[n,1] = State(ddc.PolicyFn.xdata[ind_1,1:end-1],randn()/100);
+        s[n,1] = State(rand(du),randn()/100);
         for t = 1:(nT-1)
         # x = hcat(s[:,t],randn(nM)/3);
-            x = hcat(s[:,t],randn()/100); #This is a bit problematic
-            a[:,t] = ddc.PolicyFn(x);
-            s_1 = ddc.trans(a[:,t],s[:,t]);
-            if length(s_1 .< 0) > 0
-                break;
+            x = vectorize(s[n,t]); #This is a bit problematic
+            a[n,t] = ddc.PolicyFn(x);
+            s_1 = ddc.trans(a[n,t],s[n,t].s);
+            if s_1[1] < 0
+                @show n,t
+                break
             end
-            s[:,t+1] = s_1;
+            s[n,t+1] = State(s_1,randn()/100);
+
         end
+        x = vectorize(s[n,nT]); #T
+        a[n,nT] = ddc.PolicyFn(x);
     end
+
     return(state=s,action=a);
 end
 
 function check_ee(ddc::DynamicDecisionProcess)
-    s0=rand();
+    s0=rand(Uniform(3,15));
     ϵ0=0;
     a0=ddc.PolicyFn([s0,ϵ0])[1];
     s1=ddc.trans(a0,s0);
     a1=ddc.PolicyFn([s1,0])[1];
-    ds=ddc.dtrans(a0,s0)[2].data;
-    return(ddc.dutil(a0,0)- ds *ddc.β * ddc.dutil(a1,0));
+    ds=ddc.dtrans(a1,s1)[2].data;
+    return(ddc.dutil(a0,0)- ds *ddc.β  * ddc.dutil(a1,0));
 end
 
 

@@ -10,10 +10,10 @@ end
 
 begin "Dynamic Decision Process"
     σ₀ = 1;
-    ρ = 0.2
-    β = 1 /(1+ ρ);
-    r = 0.05;
-    α = 0.7;
+    ρ = 0.15;
+    β = 1 / ( 1 + ρ);
+    r = 0.2;
+    α = 0.9;
     A = 1 + r;
     ddc = DynamicDecisionProcess(σ₀,β,α,A);
     # The log function has a solution
@@ -21,26 +21,8 @@ begin "Dynamic Decision Process"
     policy_function(s) = (1 - β * α) * A * s^α;
     ddc.ValueFn.y = value_function.(ddc.ValueFn.xdata);
     ddc.PolicyFn.y = policy_function.(ddc.PolicyFn.xdata[:,1]);
-    computeEquilibrium(ddc);
+    # computeEquilibrium(ddc);
     # ee = EulerEquation(σ₀,β,α);
-end
-
-# Check data simulation
-n = 1;
-s = Array{State,2}; #nM x nT state
-a = Array{State,2}; #nM x nT action
-while n < nM
-    s[n,1] = State()
-    for t = 1:(nT-1)
-    # x = hcat(s[:,t],randn(nM)/3);
-        x = hcat(s[:,t],rand(du,nM)); #This is a bit problematic
-        a[:,t] = ddc.PolicyFn(x);
-        s_1 = ddc.trans(a[:,t],s[:,t]);
-        if length(s_1 .< 0) > 0
-            break;
-        end
-        s[:,t+1] = s_1;
-    end
 end
 
 # "Check Approximation of Policy Function"
@@ -48,7 +30,7 @@ begin
     scatter(ddc.PolicyFn.xdata[:,1],ddc.PolicyFn.y);
     scatter!(ddc.PolicyFn.xdata[:,1],ddc.PolicyFn(ddc.PolicyFn.xdata));
     scatter!(ddc.PolicyFn.xdata[:,1],policy_function.(ddc.PolicyFn.xdata[:,1]));
-    scatter!(ddc.PolicyFn.xdata[:,1],A * ddc.PolicyFn.xdata[:,1].^α)
+    # scatter!(ddc.PolicyFn.xdata[:,1],A * ddc.PolicyFn.xdata[:,1].^α)
 end
 
 # "Check Approximation of Value Function"
@@ -60,13 +42,14 @@ end
 
 begin "Check whether the optimal choice is correct"
     c_opt = deepcopy(ddc.PolicyFn.y);
-    s = ddc.PolicyFn.xdata[:,1];
+    s = ddc.ValueFn.xdata;
     η = ddc.PolicyFn.xdata[:,2];
     ϵ = minimum(s)*0.9;
+    s = ddc.PolicyFn.xdata[:,1];
     lb = ϵ;
     for n = 1:ddc.nSolve
         ub =  ddc.trans(0,s[n]) - ϵ;
-        c_opt[n] = find_optim(s[n],η[n],lb,ub,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
+        @show c_opt[n] = find_optim(s[n],η[n],lb,ub,ddc.β,ddc.trans,ddc.util,ddc.ValueFn);
     end
     s̃ = ddc.trans(c_opt,s);
     y=ddc.util(c_opt) + ddc.β * ddc.ValueFn(s̃);
@@ -92,26 +75,36 @@ end
 
 begin
     ee_scatter=[check_ee(ddc) for i = 1:100];
+    @show mean(ee_scatter)
     scatter(ee_scatter);
 end
 
 begin
-    nM = 50;
-    nT = 200;
+    nM = 1000;
+    nT = 2;
     data = simulate_ddc(nM,nT,ddc);
-end
-begin
     # data =simulate_ee(nM,nT,ee);
     # The moment condition is
     # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
-    a_t = [];
-    a_t1 = [];
-    s_t = [];
+    a_t = []; a_t1 = [];
+    s_t = []; s_t1 = [];
     for t = 1:(nT-1)
         global a_t  = vcat(a_t,data.action[:,t]);
-        global s_t  = vcat(s_t,data.state[:,t]);
+        global s_t  = vcat(s_t, [s.s[1] for s in data.state[:,t]] );
         global a_t1 = vcat(a_t1,data.action[:,t+1])
+        global s_t1  = vcat(s_t1, [s.s[1] for s in data.state[:,t+1]] );
     end
+    dtrans=ddc.dtrans;
+    dtrans_s = (a,s) -> dtrans(a,s)[2].data;
+    R = dtrans_s.(a_t1,s_t1);
+    y=log.(a_t1) - log.(a_t)
+    X=hcat(ones(length(y)),log.(R));
+    @show b=inv(X'*X)*X'*y;
+    @show 1/b[2];
+    @show "True beta"
+    @show β
+    @show exp(b[1]/b[2]);
+    "End";
 end
 
 
@@ -124,7 +117,7 @@ end
 using Flux #Get derivatives
 using Flux.Tracker
 using Flux.Tracker: update!
-
+# Solve the Euler equations
 
 lb = [0,0];
 ub = [1,100];
@@ -135,10 +128,10 @@ function f_obj(θ)
     return(ϵ' * ϵ);
 end
 
-result = optimize(f_obj,[0.0001,0.01],[0.9999,10.0],[0.8,3.5])
+result = optimize(f_obj,[0.0001,0.01],[0.999,10.0],[0.8,3.5])
 result.minimizer
 f_obj(result.minimizer)
-f_obj((0.5,0.01))
+f_obj((β,σ₀))
 
 
 # Comment: Obviously the Euler equation approach cannot be used....
