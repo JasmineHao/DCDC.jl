@@ -79,26 +79,41 @@ begin
     scatter(ee_scatter);
 end
 
+#_____________________________________________________________________________
+# linearize estimation method
+#_____________________________________________________________________________
+
 begin
-    nM = 1000;
-    nT = 2;
-    data = simulate_ddc(nM,nT,ddc);
-    # data =simulate_ee(nM,nT,ee);
-    # The moment condition is
-    # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
-    a_t = []; a_t1 = [];
-    s_t = []; s_t1 = [];
-    for t = 1:(nT-1)
-        global a_t  = vcat(a_t,data.action[:,t]);
-        global s_t  = vcat(s_t, [s.s[1] for s in data.state[:,t]] );
-        global a_t1 = vcat(a_t1,data.action[:,t+1])
-        global s_t1  = vcat(s_t1, [s.s[1] for s in data.state[:,t+1]] );
+    β_MC=zeros(100);
+    for i = 1:100
+
+        nM = 100;
+        nT = 2;
+        data = simulate_ddc(nM,nT,ddc);
+        # data =simulate_ee(nM,nT,ee);
+        # The moment condition is
+        # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
+        a_t = []; a_t1 = [];
+        s_t = []; s_t1 = [];
+        for t = 1:(nT-1)
+             a_t  = vcat(a_t,data.action[:,t]);
+             s_t  = vcat(s_t, [s.s[1] for s in data.state[:,t]] );
+             a_t1 = vcat(a_t1,data.action[:,t+1])
+            s_t1  = vcat(s_t1, [s.s[1] for s in data.state[:,t+1]] );
+        end
+        a_t=convert(Array{Float64,1},a_t);
+        s_t=convert(Array{Float64,1},s_t);
+        a_t1=convert(Array{Float64,1},a_t1);
+        s_t1=convert(Array{Float64,1},s_t1);
+        dtrans=ddc.dtrans;
+        dtrans_s = (a,s) -> dtrans(a,s)[2].data;
+        R = dtrans_s.(a_t1,s_t1);
+        y=log.(a_t1) - log.(a_t)
+        X=hcat(ones(length(y)),log.(R));
+        b=inv(X'*X)*X'*y;
+        @show β_MC[i]=exp(b[1]/b[2]);
     end
-    dtrans=ddc.dtrans;
-    dtrans_s = (a,s) -> dtrans(a,s)[2].data;
-    R = dtrans_s.(a_t1,s_t1);
-    y=log.(a_t1) - log.(a_t)
-    X=hcat(ones(length(y)),log.(R));
+
     @show b=inv(X'*X)*X'*y;
     @show 1/b[2];
     @show "True beta"
@@ -107,12 +122,21 @@ begin
     "End";
 end
 
+begin "The estimation"
+    policy_approx = ApproxFn(s_t1,a_t1,:epan,2);
+    scatter(s_t1,a_t1);
+    scatter!(s_t1,policy_approx(s_t1));
 
+end
 # plot!(ee.PolicyFn.xdata[:,1],ee.PolicyFn.y);
 # scatter(ddc.PolicyFn.xdata[:,2]);
 # checked = [check_ee(ddc) for i = 1:100];
 # scatter(checked[checked .< 100])
 #
+
+#_____________________________________________________________________________
+# Nonlinearize estimation method
+#_____________________________________________________________________________
 
 using Flux #Get derivatives
 using Flux.Tracker
@@ -122,13 +146,31 @@ using Flux.Tracker: update!
 lb = [0,0];
 ub = [1,100];
 
+σ̂=2;β̂=0.8;
+
+trans=ddc.trans;
+function _moment(θ,trans,a_t,s_t,policy_approx)
+    σ̂,β̂=θ; s_t1_simul=trans(a_t,s_t);
+    a_t1_simul=policy_approx(s_t1_simul);
+    util=Utility(σ̂); dutil=(c,η) -> Tracker.gradient(util,c,η)[1].data;
+    # η=randn(100)./100;
+    dc_t=dutil.(a_t,zeros(length(a_t)));
+    dc_t1=dutil.(a_t1_simul,zeros(length(a_t)));
+    dtrans_s = (a,s) -> dtrans(a,s)[2].data;
+    R = dtrans_s.(a_t1,s_t1);
+    ϵ= (dc_t1 .* β̂ .* R ) ./ dc_t .-1;
+end
+
+
+
+policy_approx(s_t1_simul);
 
 function f_obj(θ)
-    ϵ=_moment(θ);
+    ϵ=_moment(θ,ddc.trans,a_t,s_t,policy_approx);
     return(ϵ' * ϵ);
 end
 
-result = optimize(f_obj,[0.0001,0.01],[0.999,10.0],[0.8,3.5])
+result = optimize(f_obj,[0.01,0.0001],[10.0,0.999],[2,0.8])
 result.minimizer
 f_obj(result.minimizer)
 f_obj((β,σ₀))

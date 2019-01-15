@@ -107,8 +107,8 @@ mutable struct DynamicDecisionProcess
         v_first=zeros(nSolve+1);
         PolicyFn = ApproxFn(sdat,c_opt,:gaussian,2);
         ValueFn = ApproxFn(s,v_first,:gaussian,2);
-        PolicyFn.h =  0.5 * PolicyFn.h;
-        ValueFn.h =  0.5 * ValueFn.h ;
+        # PolicyFn.h =  0.5 * PolicyFn.h;
+        # ValueFn.h =  0.5 * ValueFn.h ;
         # ValueFn.h = 1; #Try this
         dtrans = (c,s) -> Tracker.gradient(trans,c,s);
         dutil  = (c,η) -> Tracker.gradient(util,c,η)[1].data;
