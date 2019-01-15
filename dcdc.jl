@@ -159,43 +159,27 @@ function _moment(θ,trans,a_t,s_t,policy_approx)
     dtrans_s = (a,s) -> dtrans(a,s)[2].data;
     R = dtrans_s.(a_t1,s_t1);
     ϵ= (dc_t1 .* β̂ .* R ) ./ dc_t .-1;
+    ϵ.* s_t;
 end
 
-
-
-policy_approx(s_t1_simul);
 
 function f_obj(θ)
-    ϵ=_moment(θ,ddc.trans,a_t,s_t,policy_approx);
-    return(ϵ' * ϵ);
+    CF =_moment(θ,ddc.trans,a_t,s_t,policy_approx);
+    sum(CF)^2;
 end
 
-result = optimize(f_obj,[0.01,0.0001],[10.0,0.999],[2,0.8])
+result = optimize(f_obj,[0.1,0.01])
 result.minimizer
 f_obj(result.minimizer)
-f_obj((β,σ₀))
+f_obj([β,1]+randn(2))
 
-
-# Comment: Obviously the Euler equation approach cannot be used....
-# BUT WHY?!
 # Results of Optimization Algorithm
-#  * Algorithm: Fminbox with L-BFGS
-#  * Starting Point: [0.8,3.5]
-#  * Minimizer: [0.7181627130538114,0.010000000000000021]
-#  * Minimum: 6.840716e+00
-#  * Iterations: 11
+#  * Algorithm: Nelder-Mead
+#  * Starting Point: [0.1,0.01]
+#  * Minimizer: [0.47126793573588627,1.0128364461302402]
+#  * Minimum: 2.226862e-11
+#  * Iterations: 49
 #  * Convergence: true
-#    * |x - x'| ≤ 0.0e+00: true
-#      |x - x'| = 0.00e+00
-#    * |f(x) - f(x')| ≤ 0.0e+00 |f(x)|: true
-#      |f(x) - f(x')| = 0.00e+00 |f(x)|
-#    * |g(x)| ≤ 1.0e-08: false
-#      |g(x)| = 8.84e+00
-#    * Stopped by an increasing objective: false
+#    *  √(Σ(yᵢ-ȳ)²)/n < 1.0e-08: true
 #    * Reached Maximum Number of Iterations: false
-#  * Objective Calls: 2495
-#  * Gradient Calls: 2495
-
-#_____________________________________________________________________________
-# Secition 2 : Estimate η
-#_____________________________________________________________________________
+#  * Objective Calls: 98
