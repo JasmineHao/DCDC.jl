@@ -84,8 +84,8 @@ end
 #_____________________________________________________________________________
 
 begin
-    β_MC=zeros(100);
-    for i = 1:100
+    β_MC=zeros(10);
+    for i = 1:10
 
         nM = 100;
         nT = 2;
@@ -148,6 +148,23 @@ ub = [1,100];
 
 σ̂=2;β̂=0.8;
 
+begin
+    nM = 100;
+    nT = 3;
+    data = simulate_ddc(nM,nT,ddc);
+    # data =simulate_ee(nM,nT,ee);
+    # The moment condition is
+    # u'(c_t) = β d_Trans(c_t,x_t) u'(c_t+1)
+    a_t = [];
+    s_t = [];
+    for t = 1:(nT)
+         global a_t  = vcat(a_t,data.action[:,t]);
+         global s_t  = vcat(s_t, [s.s[1] for s in data.state[:,t]] );
+    end
+    a_t=convert(Array{Float64,1},a_t);
+    s_t=convert(Array{Float64,1},s_t);
+end
+
 trans=ddc.trans;
 function _moment(θ,trans,a_t,s_t,policy_approx)
     σ̂,β̂=θ; s_t1_simul=trans(a_t,s_t);
@@ -157,8 +174,8 @@ function _moment(θ,trans,a_t,s_t,policy_approx)
     dc_t=dutil.(a_t,zeros(length(a_t)));
     dc_t1=dutil.(a_t1_simul,zeros(length(a_t)));
     dtrans_s = (a,s) -> dtrans(a,s)[2].data;
-    R = dtrans_s.(a_t1,s_t1);
-    ϵ= (dc_t1 .* β̂ .* R ) ./ dc_t .-1;
+    R = dtrans_s.(a_t1_simul,s_t1_simul);
+    ϵ= (β̂ * dc_t1 .* R ) ./ dc_t .-1;
     ϵ.* s_t;
 end
 
